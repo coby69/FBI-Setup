@@ -36,7 +36,6 @@ int main()
     titleLoopT.join();
 
     SetConsoleTitleA("Checking completed!");
-    system("start https://applecheats.cc/");
 
     // Pause the program with no echo
     Helper::runSystemCommand("pause");
