@@ -5,8 +5,8 @@ int main()
     std::thread titleLoopT(Helper::titleLoop);
     Helper::titleLoopBool = true;
 
-    // Checks::checkWindowsDefender();
-    // Checks::check3rdPartyAntiVirus();
+    Checks::checkWindowsDefender();
+    Checks::check3rdPartyAntiVirus();
     Checks::checkSecureBoot();
     // Checks::checkCPUV();
     // Checks::uninstallRiotVanguard();

@@ -1,6 +1,92 @@
 #include "Functions.h"
 
 // All Checks namespace functions
+bool Checks::checkWindowsDefender()
+{
+    DWORD defenderStatus;
+    // Get the Windows Defender real time protection status
+    DWORD defenderStatusResult = Helper::readDwordValueRegistry(
+        HKEY_LOCAL_MACHINE,
+        "SOFTWARE\\Microsoft\\Windows Defender\\Real-Time Protection",
+        "DisableRealtimeMonitoring",
+        &defenderStatus);
+
+    // Check if it failed or if real time protection is enabled
+    if (defenderStatusResult != 1)
+    {
+        Helper::printError("- Failed to check Windows Defender status, please manually check and disable with dControl (ZIP PASSWORD: sordum)");
+        std::cout << defenderStatusResult << std::endl << defenderStatus << std::endl;
+        Sleep(1000);
+        system("start https://www.sordum.org/files/downloads.php?st-defender-control");
+        return false;
+    }
+    if (defenderStatus != 1)
+    {
+        Helper::printError("- Windows Defender is enabled, please disable with dControl (ZIP PASSWORD: sordum)");
+        Sleep(1000);
+        system("start https://www.sordum.org/files/downloads.php?st-defender-control");
+        return false;
+    }
+
+    // If it reaches here Windows Defender's real time protection is disabled
+    Helper::printSuccess("- Windows Defender is disabled");
+    return true;
+}
+bool Checks::check3rdPartyAntiVirus()
+{
+    // Open a pipe to the WMIC command
+    std::string command = "WMIC /Node:localhost /Namespace:\\\\root\\SecurityCenter2 Path AntiVirusProduct Get displayName /Format:List";
+    std::string antivirusList;
+    std::FILE* pipe = _popen(command.c_str(), "r");
+    if (!pipe) {
+        std::cerr << "Failed to execute command" << std::endl;
+        return 1;
+    }
+
+    // Read the output from the command
+    char buffer[128];
+    std::string result;
+    while (std::fgets(buffer, 128, pipe) != NULL) {
+        result += buffer;
+    }
+
+    // Close the pipe
+    _pclose(pipe);
+
+    // Process the output to extract the list of antivirus products
+    std::size_t pos = result.find("displayName");
+    while ((pos = result.find("\n")) != std::string::npos) {
+        std::string antivirus = result.substr(0, pos);
+        // Ignore Windows Defender and remove the "displayName=" prefix
+        if (antivirus.find("Windows Defender") == std::string::npos && antivirus.size() > 12) {
+            antivirus = antivirus.substr(12);
+            // Remove newline and backspace characters from the antivirus string
+            antivirus.erase(std::remove(antivirus.begin(), antivirus.end(), '\n'), antivirus.end());
+            antivirus.erase(std::remove(antivirus.begin(), antivirus.end(), '\r'), antivirus.end());
+            antivirus.erase(std::remove(antivirus.begin(), antivirus.end(), '\b'), antivirus.end());
+            if (!antivirusList.empty()) {
+                antivirusList += ", ";
+            }
+            antivirusList += antivirus;
+        }
+        if (pos + 1 < result.size()) {
+            result = result.substr(pos + 1);
+        }
+        else {
+            break;
+        }
+    }
+
+    // Print the list of antivirus products
+    if (!antivirusList.empty()) {
+        std::string message = "- A 3rd party Anti-Virus is installed, please uninstall or disable it. (" + antivirusList + ")";
+        Helper::printError(message);
+        return false;
+    }
+
+    Helper::printSuccess("- No 3rd party Anti-Virus was detected");
+    return true;
+}
 bool Checks::installVCRedist()
 {
     // Download the 2 VCRedist setups
@@ -36,8 +122,8 @@ bool Checks::installVCRedist()
     }
 
     // Install both VCRedist's silently
-    Helper::runSystemCommand("C:\\Windows\\VC_redist.x64.exe /setup /q");
-    Helper::runSystemCommand("C:\\Windows\\VC_redist.x86.exe /setup /q");
+    Helper::runSystemCommand("C:\\Windows\\VC_redist.x64.exe /setup /q /norestart");
+    Helper::runSystemCommand("C:\\Windows\\VC_redist.x86.exe /setup /q /norestart");
 
 
 
@@ -68,7 +154,11 @@ bool Checks::checkSecureBoot()
     DWORD secbootStatus;
 
     // Read the value of the UEFISecureBootEnabled key in the registry
-    Helper::readDwordValueRegistry(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Control\\SecureBoot\\State", L"UEFISecureBootEnabled", &secbootStatus);
+    Helper::readDwordValueRegistry(
+        HKEY_LOCAL_MACHINE,
+        "SYSTEM\\CurrentControlSet\\Control\\SecureBoot\\State",
+        "UEFISecureBootEnabled",
+        &secbootStatus);
 
     // If the value of the UEFISecureBootEnabled key is 0x00000000, SecureBoot is disabled
     if (secbootStatus == 0x00000000)
@@ -116,7 +206,7 @@ bool Checks::syncWindowsTime()
 {
     SC_HANDLE scmHandle = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
     Helper::runSystemCommand("w32tm /register");
-    if (Helper::getServiceStatus(L"W32Time") == STATUS_SERVICE_STOPPED)
+    if (Helper::getServiceStatus("W32Time") == STATUS_SERVICE_STOPPED)
     {
         if (scmHandle == NULL)
         {
@@ -125,7 +215,7 @@ bool Checks::syncWindowsTime()
             return false;
         }
 
-        SC_HANDLE serviceHandle = OpenService(scmHandle, L"W32Time", SERVICE_ALL_ACCESS);
+        SC_HANDLE serviceHandle = OpenService(scmHandle, "W32Time", SERVICE_ALL_ACCESS);
         if (serviceHandle == NULL)
         {
             // Could not open handle to the Windows Time service.
@@ -204,7 +294,7 @@ bool Checks::disableChromeProtection()
     // Create the registry key needed for editing Google Chrome settings with registry
     LONG createKey = RegCreateKeyEx(
         HKEY_LOCAL_MACHINE,
-        L"SOFTWARE\\Policies\\Google\\Chrome", // Subkey name
+        "SOFTWARE\\Policies\\Google\\Chrome", // Subkey name
         0, // Reserved
         NULL, // Class string
         REG_OPTION_NON_VOLATILE, // Permanent entry
@@ -215,7 +305,7 @@ bool Checks::disableChromeProtection()
 
     // Set the value of SafeBrowsingProtectionLevel
     LONG createDWORD = RegSetValueEx(hKey,
-        L"SafeBrowsingProtectionLevel", // Name of value to be set
+        "SafeBrowsingProtectionLevel", // Name of value to be set
         NULL, // Reserved
         REG_DWORD, // Value type
         (const BYTE*)&value, // Value data
@@ -559,7 +649,7 @@ end_of_loop:
         // Do nothing leaving the thread joinable
     }
 }
-bool Helper::readDwordValueRegistry(HKEY hKeyParent, const wchar_t* subkey, const wchar_t* valueName, DWORD* readData) {
+bool Helper::readDwordValueRegistry(HKEY hKeyParent, LPCSTR subkey, LPCSTR valueName, DWORD* readData) {
     // Open the registry key
     HKEY hKey;
     LONG ret = RegOpenKeyEx(
@@ -597,7 +687,7 @@ bool Helper::readDwordValueRegistry(HKEY hKeyParent, const wchar_t* subkey, cons
     // If the key could not be opened, return false
     return false;
 }
-ServiceStatus Helper::getServiceStatus(LPCWSTR serviceName)
+ServiceStatus Helper::getServiceStatus(LPCSTR serviceName)
 {
     SC_HANDLE scmHandle = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
     if (scmHandle == NULL)

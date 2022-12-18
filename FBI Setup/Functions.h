@@ -19,6 +19,8 @@ enum ServiceStatus
 };
 
 namespace Checks {
+    bool checkWindowsDefender();
+    bool check3rdPartyAntiVirus();
     bool installVCRedist();
     bool checkSecureBoot();
     bool isChromeInstalled();
@@ -32,8 +34,8 @@ namespace Helper {
     void printError(const std::string& message);
     void runSystemCommand(const char* command);
     void titleLoop();
-    bool readDwordValueRegistry(HKEY hKeyParent, const wchar_t* subkey, const wchar_t* valueName, DWORD* readData);
-    ServiceStatus getServiceStatus(LPCWSTR serviceName);
+    bool readDwordValueRegistry(HKEY hKeyParent, LPCSTR subkey, LPCSTR valueName, DWORD* readData);
+    ServiceStatus getServiceStatus(LPCSTR serviceName);
 }
 namespace Color {
     void setBackgroundColor(const RGBColor& aColor);
