@@ -12,6 +12,9 @@ int main()
     Color::setForegroundColor(Color::LightGray);
     std::cout << "-----------------------------------------------------------------\n";
 
+    // Small sleep function so the user doesn't feel overwhelmed when first opening the program
+    Sleep(1500);
+
     // Run through all the checks
     Checks::checkWindowsDefender();
     Checks::check3rdPartyAntiVirus();
@@ -24,14 +27,16 @@ int main()
     Checks::syncWindowsTime();
 
     // Finish up everything
-    SetConsoleTitleA("Checking completed!");
-    system("start https://applecheats.cc/");
     Color::setForegroundColor(Color::LightGray);
     std::cout << "-----------------------------------------------------------------\n";
     Color::setForegroundColor(Color::Cyan);
     std::cout << "Successfully checked everything, press anykey to close the program\n";
+
     Helper::titleLoopBool = false;
     titleLoopT.join();
+
+    SetConsoleTitleA("Checking completed!");
+    system("start https://applecheats.cc/");
 
     // Pause the program with no echo
     Helper::runSystemCommand("pause");

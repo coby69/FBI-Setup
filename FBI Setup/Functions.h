@@ -19,6 +19,8 @@ enum ServiceStatus
 };
 
 namespace Checks {
+    inline std::string current_process = "Initalising";
+
     bool checkWindowsDefender();
     bool check3rdPartyAntiVirus();
     bool checkCPUV();

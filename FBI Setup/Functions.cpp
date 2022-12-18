@@ -3,6 +3,8 @@
 // All Checks namespace functions
 bool Checks::checkWindowsDefender()
 {
+    Checks::current_process = "Checking Windows Defender";
+
     DWORD defenderStatus;
     // Get the Windows Defender real time protection status
     DWORD defenderStatusResult = Helper::readDwordValueRegistry(
@@ -34,6 +36,8 @@ bool Checks::checkWindowsDefender()
 }
 bool Checks::check3rdPartyAntiVirus()
 {
+    Checks::current_process = "Checking for 3rd Party AV's";
+
     // Open a pipe to the WMIC command
     std::string command = "WMIC /Node:localhost /Namespace:\\\\root\\SecurityCenter2 Path AntiVirusProduct Get displayName /Format:List";
     std::string antivirusList;
@@ -89,6 +93,8 @@ bool Checks::check3rdPartyAntiVirus()
 }
 bool Checks::checkCPUV()
 {
+    Checks::current_process = "Checking CPU-V";
+
     // Open a pipe to the WMIC command
     std::string command = "WMIC CPU Get VirtualizationFirmwareEnabled";
     std::FILE* pipe = _popen(command.c_str(), "r");
@@ -121,6 +127,8 @@ bool Checks::checkCPUV()
 }
 bool Checks::uninstallRiotVanguard()
 {
+    Checks::current_process = "Checking for Riot Vanguard";
+
     // Open the registry key for the installed software
     HKEY hKey;
     LONG result = RegOpenKeyEx(
@@ -189,6 +197,8 @@ bool Checks::uninstallRiotVanguard()
 }
 bool Checks::installVCRedist()
 {
+    Checks::current_process = "Downloading VCRedist";
+
     // Download the 2 VCRedist setups
     HRESULT downloadX64 = URLDownloadToFileA(
         NULL,   // A pointer to the controlling IUnknown interface (not needed here)
@@ -222,6 +232,7 @@ bool Checks::installVCRedist()
     }
 
     // Install both VCRedist's silently
+    Checks::current_process = "Installing VCRedist";
     Helper::runSystemCommand("C:\\Windows\\VC_redist.x64.exe /setup /q /norestart");
     Helper::runSystemCommand("C:\\Windows\\VC_redist.x86.exe /setup /q /norestart");
 
@@ -251,6 +262,8 @@ bool Checks::installVCRedist()
 }
 bool Checks::checkSecureBoot()
 {
+    Checks::current_process = "Checking SecureBoot";
+
     DWORD secbootStatus;
 
     // Read the value of the UEFISecureBootEnabled key in the registry
@@ -281,6 +294,8 @@ bool Checks::checkSecureBoot()
 }
 bool Checks::isChromeInstalled()
 {
+    Checks::current_process = "Checking for Google Chrome";
+
     // Check if the Chrome installation directory exists
     if (std::filesystem::exists(L"C:\\Program Files\\Google\\Chrome\\Application"))
     {
@@ -304,6 +319,8 @@ bool Checks::isChromeInstalled()
 }
 bool Checks::syncWindowsTime()
 {
+    Checks::current_process = "Syncing Windows Time";
+
     SC_HANDLE scmHandle = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
     Helper::runSystemCommand("w32tm /register");
     if (Helper::getServiceStatus("W32Time") == STATUS_SERVICE_STOPPED)
@@ -387,6 +404,8 @@ bool Checks::syncWindowsTime()
 }
 bool Checks::disableChromeProtection()
 {
+    Checks::current_process = "Disabling Google Chrome Protection";
+
     HKEY hKey;
     DWORD disp;
     DWORD value = 0x00000000; // Value that will be set for the SafeBrowsingProtectionLevel registry key
@@ -476,245 +495,72 @@ void Helper::runSystemCommand(const char* command)
 void Helper::titleLoop()
 {
     // Set delay vars so they are easily changeable
-    int longDelay = 250;
-    int medDelay = 150;
+    int longDelay = 150;
     int shortDelay = 40;
 
     // Add delays and strings to a vector for easier management
     std::string messages[] = {
-        "Apple Cheats",
-        "Apple Cheats.",
-        "Apple Cheats..",
-        "Apple Cheats...",
-        "Apple Cheats..",
-        "Apple Cheats.",
-        "Apple Cheats",
-        "Apple Cheats.",
-        "Apple Cheats..",
-        "Apple Cheats...",
-        "Apple Cheats..",
-        "Apple Cheats.",
-        "Apple Cheats",
-        "Apple Cheats.",
-        "Apple Cheats..",
-        "Apple Cheats...",
-        "Apple Cheats..",
-        "Apple Cheats.",
-        "Apple Cheats",
-        "Apple Cheats.",
-        "Apple Cheats..",
-        "Apple Cheats...",
-        "Apple Cheats..",
-        "Apple Cheats.",
-        "Apple Cheats",
+        // Long Delay
+        "Apple Cheats", "Apple Cheats.", "Apple Cheats..", "Apple Cheats...", "Apple Cheats..",
+        "Apple Cheats.", "Apple Cheats", "Apple Cheats.", "Apple Cheats..", "Apple Cheats...",
+        "Apple Cheats..", "Apple Cheats.", "Apple Cheats", "Apple Cheats.", "Apple Cheats..",
+        "Apple Cheats...", "Apple Cheats..", "Apple Cheats.", "Apple Cheats", "Apple Cheats.",
+        "Apple Cheats..", "Apple Cheats...", "Apple Cheats..", "Apple Cheats.",
 
-        "Apple Cheat",
-        "Apple Chea",
-        "Apple Che",
-        "Apple Ch",
-        "Apple C",
-        "Apple ",
-        "Apple",
-        "Appl",
-        "App",
-        "Ap",
-        "A",
-        "",
-        "M",
-        "Ma",
-        "Mad",
-        "Made",
-        "Made ",
-        "Made B",
-        "Made By",
-        "Made By ",
-        "Made By A",
-        "Made By Ap",
-        "Made By App",
-        "Made By Appl",
-        "Made By Apple",
-        "Made By Apple ",
-        "Made By Apple C",
-        "Made By Apple Ch",
-        "Made By Apple Che",
-        "Made By Apple Chea",
-        "Made By Apple Cheat",
+        // Short Delay
+        "Apple Cheats", "Apple Cheat", "Apple Chea", "Apple Che", "Apple Ch", "Apple C", "Apple ",
+        "Apple", "Appl", "App", "Ap", "A", "", "M", "Ma", "Mad", "Made", "Made ", "Made B", "Made By",
+        "Made By ", "Made By A", "Made By Ap", "Made By App", "Made By Appl", "Made By Apple",
+        "Made By Apple ", "Made By Apple C", "Made By Apple Ch", "Made By Apple Che", "Made By Apple Chea",
+        "Made By Apple Cheat", "Made By Apple Cheats",
 
-        "Made By Apple Cheats",
-        "Made By Apple Cheats.",
-        "Made By Apple Cheats..",
-        "Made By Apple Cheats...",
-        "Made By Apple Cheats..",
-        "Made By Apple Cheats.",
-        "Made By Apple Cheats",
-        "Made By Apple Cheats.",
-        "Made By Apple Cheats..",
-        "Made By Apple Cheats...",
-        "Made By Apple Cheats..",
-        "Made By Apple Cheats.",
-        "Made By Apple Cheats",
-        "Made By Apple Cheats.",
-        "Made By Apple Cheats..",
-        "Made By Apple Cheats...",
-        "Made By Apple Cheats..",
-        "Made By Apple Cheats.",
-        "Made By Apple Cheats",
-        "Made By Apple Cheats.",
-        "Made By Apple Cheats..",
-        "Made By Apple Cheats...",
-        "Made By Apple Cheats..",
-        "Made By Apple Cheats.",
-        "Made By Apple Cheats",
+        // Long delay
+        "Made By Apple Cheats.", "Made By Apple Cheats..", "Made By Apple Cheats...", "Made By Apple Cheats..",
+        "Made By Apple Cheats.", "Made By Apple Cheats", "Made By Apple Cheats.", "Made By Apple Cheats..",
+        "Made By Apple Cheats...", "Made By Apple Cheats..", "Made By Apple Cheats.", "Made By Apple Cheats",
+        "Made By Apple Cheats.", "Made By Apple Cheats..", "Made By Apple Cheats...", "Made By Apple Cheats..",
+        "Made By Apple Cheats.", "Made By Apple Cheats", "Made By Apple Cheats.", "Made By Apple Cheats..",
+        "Made By Apple Cheats...", "Made By Apple Cheats..", "Made By Apple Cheats.",
 
-        "Made By Apple Cheat",
-        "Made By Apple Chea",
-        "Made By Apple Che",
-        "Made By Apple Ch",
-        "Made By Apple C",
-        "Made By Apple ",
-        "Made By Apple",
-        "Made By Appl",
-        "Made By App",
-        "Made By Ap",
-        "Made By A",
-        "Made By ",
-        "Made By",
-        "Made B",
-        "Made ",
-        "Made",
-        "Mad",
-        "Ma",
-        "M",
-        "",
-
-        "A",
-        "Ap",
-        "App",
-        "Appl",
-        "Apple",
-        "Apple ",
-        "Apple C",
-        "Apple Ch",
-        "Apple Che",
-        "Apple Chea",
-        "Apple Cheat"
+        // Short Delay
+        "Made By Apple Cheats", "Made By Apple Cheat", "Made By Apple Chea", "Made By Apple Che",
+        "Made By Apple Ch", "Made By Apple C", "Made By Apple ", "Made By Apple", "Made By Appl",
+        "Made By App", "Made By Ap", "Made By A", "Made By ", "Made By", "Made B", "Made ", "Made",
+        "Mad", "Ma", "M", "", "A", "Ap", "App", "Appl", "Apple", "Apple ", "Apple C", "Apple Ch",
+        "Apple Che", "Apple Chea","Apple Cheat"
     };
     int delays[] = {
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
+        // Long Delay
+        longDelay, longDelay, longDelay, longDelay, longDelay,
+        longDelay, longDelay, longDelay, longDelay, longDelay,
+        longDelay, longDelay, longDelay, longDelay, longDelay,
+        longDelay, longDelay, longDelay, longDelay, longDelay,
+        longDelay, longDelay, longDelay, longDelay,
 
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    medDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
+        // Short Delay
+        shortDelay, shortDelay, shortDelay, shortDelay, shortDelay,
+        shortDelay, shortDelay, shortDelay, shortDelay, shortDelay,
+        shortDelay, shortDelay, shortDelay, shortDelay, shortDelay,
+        shortDelay, shortDelay, shortDelay, shortDelay, shortDelay,
+        shortDelay, shortDelay, shortDelay, shortDelay, shortDelay,
+        shortDelay, shortDelay, shortDelay, shortDelay, shortDelay,
+        shortDelay, shortDelay, shortDelay,
 
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
-    longDelay,
+        // Long delay
+        longDelay, longDelay, longDelay, longDelay, longDelay,
+        longDelay, longDelay, longDelay, longDelay, longDelay,
+        longDelay, longDelay, longDelay, longDelay, longDelay,
+        longDelay, longDelay, longDelay, longDelay, longDelay,
+        longDelay, longDelay, longDelay,
 
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    medDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay,
-    shortDelay
+        // Short Delay
+        shortDelay, shortDelay, shortDelay, shortDelay, shortDelay,
+        shortDelay, shortDelay, shortDelay, shortDelay, shortDelay,
+        shortDelay, shortDelay, shortDelay, shortDelay, shortDelay,
+        shortDelay, shortDelay, shortDelay, shortDelay, shortDelay,
+        shortDelay, shortDelay, shortDelay, shortDelay, shortDelay,
+        shortDelay, shortDelay, shortDelay, shortDelay, shortDelay,
+        shortDelay, shortDelay
     };
 
     int delay = 0;
@@ -727,8 +573,11 @@ void Helper::titleLoop()
             // Increment the index
             index++;
 
+            // Create a new string to add the current thing being done
+            std::string console_title = message + std::string(35 - message.length(), ' ') + "|" + std::string(35 - Checks::current_process.length(), ' ') + Checks::current_process;
+
             // Set console title
-            SetConsoleTitleA(message.c_str());
+            SetConsoleTitleA(console_title.c_str());
 
             // Get the delay for the current message
             int delay = delays[index];
