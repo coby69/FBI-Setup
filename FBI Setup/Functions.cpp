@@ -39,7 +39,7 @@ bool Checks::check3rdPartyAntiVirus()
     std::string antivirusList;
     std::FILE* pipe = _popen(command.c_str(), "r");
     if (!pipe) {
-        std::cerr << "Failed to execute command" << std::endl;
+        Helper::printError("- Failed to check for 3rd party Anti-Viruses, please manually check and disable/uninstall");
         return 1;
     }
 
