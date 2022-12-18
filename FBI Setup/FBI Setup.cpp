@@ -10,6 +10,12 @@ int main()
     Checks::checkSecureBoot();
     Checks::syncWindowsTime();
 
+    // TODO:
+    // Checks::check3rdPartyAntiVirus();
+    // Checks::uninstallRiotVanguard();
+    // Checks::installVCRedist();
+    // Checks::checkCPUV();
+
     Helper::titleLoopBool = false;
     titleLoopT.join();
     system("title Checking completed! APPLECHEATS.CC");
