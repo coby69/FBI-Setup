@@ -6,5 +6,7 @@
 #include <filesystem>
 #include <stdio.h>
 #include <winsvc.h>
-
+#include <urlmon.h>
 #include "Functions.h"
+
+#pragma comment(lib, "urlmon.lib")

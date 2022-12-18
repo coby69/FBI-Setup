@@ -19,6 +19,7 @@ enum ServiceStatus
 };
 
 namespace Checks {
+    bool installVCRedist();
     bool checkSecureBoot();
     bool isChromeInstalled();
     bool syncWindowsTime();

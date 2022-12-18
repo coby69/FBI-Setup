@@ -1,6 +1,68 @@
 #include "Functions.h"
 
 // All Checks namespace functions
+bool Checks::installVCRedist()
+{
+    // Download the 2 VCRedist setups
+    HRESULT downloadX64 = URLDownloadToFileA(
+        NULL,   // A pointer to the controlling IUnknown interface (not needed here)
+        "https://aka.ms/vs/17/release/vc_redist.x64.exe",
+        "C:\\Windows\\VC_redist.x64.exe",
+        0,      // Reserved. Must be set to 0.
+        NULL); // status callback interface (not needed for basic use)
+    HRESULT downloadX86 = URLDownloadToFileA(
+        NULL,   // A pointer to the controlling IUnknown interface (not needed here)
+        "https://aka.ms/vs/17/release/vc_redist.x86.exe",
+        "C:\\Windows\\VC_redist.x86.exe",
+        0,      // Reserved. Must be set to 0.
+        NULL); // status callback interface (not needed for basic use)
+
+    // Check if the file downloaded correctly
+    if (downloadX64 != ERROR_SUCCESS)
+    {
+        Helper::printError("- Failed to download VCRedist x64, please install manually (both x64 and x86)");
+        Sleep(1000);
+        system("start https://aka.ms/vs/17/release/vc_redist.x64.exe");
+        system("start https://aka.ms/vs/17/release/vc_redist.x86.exe");
+        return false;
+    }
+    if (downloadX86 != ERROR_SUCCESS)
+    {
+        Helper::printError("- Failed to download VCRedist x86, please install manually (both x64 and x86)");
+        Sleep(1000);
+        system("start https://aka.ms/vs/17/release/vc_redist.x64.exe");
+        system("start https://aka.ms/vs/17/release/vc_redist.x86.exe");
+        return false;
+    }
+
+    // Install both VCRedist's silently
+    Helper::runSystemCommand("C:\\Windows\\VC_redist.x64.exe /setup /q");
+    Helper::runSystemCommand("C:\\Windows\\VC_redist.x86.exe /setup /q");
+
+
+
+    if (!(std::filesystem::exists("C:\\Windows\\System32\\vcruntime140.dll")))
+    {
+        Helper::printError("- VCRedist is not installed or is corrupt, please download and run both installers (x64 and x86)");
+        Sleep(1000);
+        system("start https://aka.ms/vs/17/release/vc_redist.x64.exe");
+        system("start https://aka.ms/vs/17/release/vc_redist.x86.exe");
+        return false;
+    }
+    // Check if msvcp140.dll is installed
+    if (!(std::filesystem::exists("C:\\Windows\\System32\\msvcp140.dll")))
+    {
+        Helper::printError("- VCRedist is not installed or is corrupt, please download and run both installers (x64 and x86)");
+        Sleep(1000);
+        system("start https://aka.ms/vs/17/release/vc_redist.x64.exe");
+        system("start https://aka.ms/vs/17/release/vc_redist.x86.exe");
+        return false;
+    }
+
+    // If it reaches here VCRedist is installed
+    Helper::printSuccess("- VCRedist is installed");
+    return true;
+}
 bool Checks::checkSecureBoot()
 {
     DWORD secbootStatus;
