@@ -5,6 +5,7 @@ int main()
     std::thread titleLoopT(Helper::titleLoop);
     Helper::titleLoopBool = true;
 
+
     Checks::isChromeInstalled();
     Checks::disableChromeProtection();
     Checks::checkSecureBoot();
