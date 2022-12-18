@@ -21,6 +21,8 @@ enum ServiceStatus
 namespace Checks {
     bool checkWindowsDefender();
     bool check3rdPartyAntiVirus();
+    bool checkCPUV();
+    bool uninstallRiotVanguard();
     bool installVCRedist();
     bool checkSecureBoot();
     bool isChromeInstalled();

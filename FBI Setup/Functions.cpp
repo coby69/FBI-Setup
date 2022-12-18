@@ -40,7 +40,7 @@ bool Checks::check3rdPartyAntiVirus()
     std::FILE* pipe = _popen(command.c_str(), "r");
     if (!pipe) {
         Helper::printError("- Failed to check for 3rd party Anti-Viruses, please manually check and disable/uninstall");
-        return 1;
+        return false;
     }
 
     // Read the output from the command
@@ -85,6 +85,106 @@ bool Checks::check3rdPartyAntiVirus()
     }
 
     Helper::printSuccess("- No 3rd party Anti-Virus was detected");
+    return true;
+}
+bool Checks::checkCPUV()
+{
+    // Open a pipe to the WMIC command
+    std::string command = "WMIC CPU Get VirtualizationFirmwareEnabled";
+    std::FILE* pipe = _popen(command.c_str(), "r");
+    if (!pipe) {
+        Helper::printError("- Failed to check if CPUV is enabled, please manually check and disable in BIOS");
+        return false;
+    }
+
+    // Read the output from the command
+    char buffer[128];
+    std::string result;
+    while (std::fgets(buffer, 128, pipe) != NULL) {
+        result += buffer;
+    }
+
+    // Close the pipe
+    _pclose(pipe);
+
+    // Check if the result is "True"
+    if (result.find("True") != std::string::npos)
+    {
+        Helper::printError("- CPUV is enabled in BIOS, please disable in BIOS");
+        return false;
+    }
+    else
+    {
+        Helper::printSuccess("- CPUV is disabled");
+        return false;
+    }
+}
+bool Checks::uninstallRiotVanguard()
+{
+    // Open the registry key for the installed software
+    HKEY hKey;
+    LONG result = RegOpenKeyEx(
+        HKEY_LOCAL_MACHINE,
+        "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
+        0,
+        KEY_READ,
+        &hKey
+    );
+
+    if (result != ERROR_SUCCESS) {
+        std::cerr << "Failed to open registry key: " << result << std::endl;
+        return false;
+    }
+
+    // Enumerate the subkeys of the registry key
+    DWORD subkeyIndex = 0;
+    char subkeyName[256];
+    DWORD subkeyNameSize = sizeof(subkeyName);
+    while (RegEnumKeyEx(hKey, subkeyIndex, subkeyName, &subkeyNameSize, NULL, NULL, NULL, NULL) == ERROR_SUCCESS) {
+        // Open the subkey
+        HKEY hSubkey;
+        result = RegOpenKeyEx(hKey, subkeyName, 0, KEY_READ, &hSubkey);
+        if (result != ERROR_SUCCESS) {
+            Helper::printError("- Failed to check if Riot Vanguard is installed, please manually check and uninstall");
+            RegCloseKey(hKey);
+            return false;
+        }
+
+        // Read the "DisplayName" value from the subkey
+        char displayName[256];
+        DWORD displayNameSize = sizeof(displayName);
+        result = RegQueryValueEx(hSubkey, "DisplayName", NULL, NULL, (LPBYTE)displayName, &displayNameSize);
+        if (result == ERROR_SUCCESS) {
+            // Check if the display name is "Riot Vanguard"
+            if (strcmp(displayName, "Riot Vanguard") == 0) {
+                RegCloseKey(hSubkey);
+                RegCloseKey(hKey);
+
+                if (std::filesystem::exists("C:\\Program Files\\Riot Vanguard\\installer.exe"))
+                {
+                    _spawnl(_P_WAIT, "C:\\Program Files\\Riot Vanguard\\installer.exe", "installer.exe", NULL);
+                    Helper::printSuccess("- Successfully prompted the user to uninstall Riot Vanguard (press Yes to uninstall)");
+                    return true;
+                }
+
+                Helper::printError("- Failed to uninstall Riot Vanguard, please manually uninstall");
+                return false;
+            }
+        }
+
+        // Close the subkey
+        RegCloseKey(hSubkey);
+
+        // Reset the subkey name size and increment the subkey index
+        subkeyNameSize = sizeof(subkeyName);
+        ++subkeyIndex;
+    }
+
+    // Close the registry key
+    RegCloseKey(hKey);
+
+    // If it gets here then "Riot Vanguard" is not installed
+    Helper::printSuccess("- Riot Vanguard is not installed");
     return true;
 }
 bool Checks::installVCRedist()
