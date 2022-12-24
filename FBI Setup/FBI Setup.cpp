@@ -43,7 +43,7 @@ int main()
     Checks::current_process = "Waiting for user input";
 
     MessageBeep(MB_ICONWARNING);
-    if (MessageBoxA(NULL, "Would you like to run additional checks?", "FBI Setup", MB_ICONQUESTION | MB_YESNO) == IDNO)
+    if (MessageBoxA(NULL, "Would you like to run additional checks?\n(Recommended but not required)", "FBI Setup", MB_ICONQUESTION | MB_YESNO) == IDNO)
     {
         std::cout << ", feel free to close the application";
 

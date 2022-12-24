@@ -547,6 +547,8 @@ bool Checks::checkWinver()
 }
 bool Checks::deleteSymbols()
 {
+    Checks::current_process = "Deleting C:\\Symbols";
+
     // Set the path of the directory to delete
     std::string path = "C:\\Symbols";
 
@@ -572,6 +574,8 @@ bool Checks::deleteSymbols()
 }
 bool Checks::checkFastBoot()
 {
+    Checks::current_process = "Checking Fast Boot";
+
     DWORD fastBootStatus;
 
     // Read the value of the HiberbootEnabled registry key
