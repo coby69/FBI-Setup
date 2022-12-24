@@ -7,6 +7,9 @@
 #include <stdio.h>
 #include <winsvc.h>
 #include <urlmon.h>
+#include <map>
+#include <powrprof.h>
 #include "Functions.h"
 
 #pragma comment(lib, "urlmon.lib")
+#pragma comment(lib, "powrprof.lib")

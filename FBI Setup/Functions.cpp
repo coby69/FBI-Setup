@@ -441,7 +441,7 @@ bool Checks::disableChromeProtection()
         {
         case ERROR_SUCCESS:
             // Print success
-            Helper::printSuccess("- Enhanced Protection is disabled on Google Chrome");
+            Helper::printSuccess("- Successfully disabled Enhanced Protection on Google Chrome");
             return true;
         default:
             // Print error
@@ -455,11 +455,207 @@ bool Checks::disableChromeProtection()
     }
 }
 
+// Additional checks
+bool Checks::checkWinver()
+{
+    Checks::current_process = "Checking Winver";
+
+    // Open a pipe to the WMIC command
+    std::string command = "wmic os get version | findstr /R \"[0-9]\\.[0-9]\\.[0-9]\"";
+    std::FILE* pipe = _popen(command.c_str(), "r");
+    if (!pipe) {
+        Helper::printError("- Failed to check Winver, please check manually");
+        return false;
+    }
+
+    // Read the output from the command
+    char buffer[128];
+    std::string result;
+    while (std::fgets(buffer, 128, pipe) != NULL) {
+        result += buffer;
+    }
+
+    // Close the pipe
+    _pclose(pipe);
+
+    // Extract the build number from the result
+    std::istringstream iss(result);
+    int major, minor, build;
+    char period;
+    iss >> major >> period >> minor >> period >> build;
+
+    // Define a map to use to compare the build to the winver
+    std::map<int, std::string> build_map = {
+      // Windows 10 builds
+      {10240, "Windows 10 NT 10.0"},
+      {10586, "Windows 10 1511"},
+      {14393, "Windows 10 1607"},
+      {15063, "Windows 10 1703"},
+      {16299, "Windows 10 1709"},
+      {17134, "Windows 10 1803"},
+      {17763, "Windows 10 1809"},
+      {18362, "Windows 10 1903"},
+      {19041, "Windows 10 2004"},
+      {19042, "Windows 10 20H2"},
+      {19043, "Windows 10 21H1"},
+      {19044, "Windows 10 21H2"},
+      {19045, "Windows 10 22H2"},
+      // Windows 11 builds
+      {22000, "Windows 11 21H2"},
+      {22621, "Windows 11 22H2"},
+    };
+
+    // Define the different builds that cause issues and the minimum build
+    int min_build = 19041; // Minimum build number to support (2004 or 22H2)
+    int trouble_win10_build = 19045; // Build that causes issues on win 10
+    int trouble_win11_build = 22621; // Build that causes issues on win 11
+
+    // Check the build to the corresponding string with the map
+    auto it = build_map.find(build);
+    if (it != build_map.end()) {
+        std::string winver = it->second;
+
+        // Check if winver is unsupported
+        if (build < min_build)
+        {
+            Helper::printError("- Unsupported Winver: " + winver + ". Please downgrade");
+            return false;
+        }
+
+        // Check if winver is troublesome (win 10)
+        if (build == trouble_win10_build)
+        {
+            Helper::printConcern("- Winver: \"" + winver + "\" is a 50/50, if error contact to support");
+            return false;
+        }
+        // Check if winver is troublesome (win 11)
+        else if (build == trouble_win11_build)
+        {
+            Helper::printConcern("- Winver: \"" + winver + "\" is a 50/50, if error contact to support");
+            return false;
+        }
+
+        // If it got here, the winver should be fine
+        Helper::printSuccess("- Winver is supported (" + winver + ")");
+        return true;
+    }
+    // If it got here, then the build doesnt match with any winvers
+    else {
+        Helper::printError("- Failed to check Winver, please check manually");
+        return false;
+    }
+}
+bool Checks::deleteSymbols()
+{
+    // Set the path of the directory to delete
+    std::string path = "C:\\Symbols";
+
+    // Check if the directory exists
+    if (std::filesystem::exists(path))
+    {
+        // Try to delete the directory and all its contents
+        if (!(std::filesystem::remove_all(path)))
+        {
+            // If the directory could not be deleted, print an error message
+            Helper::printError("- Unable to delete " + path + ", please delete manually");
+            return false;
+        }
+
+        // If the directory was successfully deleted, print a success message
+        Helper::printSuccess("- Successfully deleted " + path);
+        return true;
+    }
+
+    // If the directory does not exist, print a success message
+    Helper::printSuccess("- " + path + " folder does not exsist");
+    return true;
+}
+bool Checks::checkFastBoot()
+{
+    DWORD fastBootStatus;
+
+    // Read the value of the HiberbootEnabled registry key
+    // This key determines whether fast boot is enabled or disabled
+    if (Helper::readDwordValueRegistry(
+        HKEY_LOCAL_MACHINE,
+        "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power",
+        "HiberbootEnabled",
+        &fastBootStatus)!= true) {
+        Helper::printError("- Unable to check Fast Boot, please check manually");
+        return false;
+    }
+
+    // Check the value of the HiberbootEnabled key
+    if (fastBootStatus == 0x00000000) {
+        // Fast boot is disabled
+        Helper::printSuccess("- Fast Boot is disabled");
+        return true;
+    }
+    else {
+        // Fast boot is enabled
+        HKEY hKey;
+        DWORD disp;
+        DWORD value = 0x00000000; // Value to set for the HiberbootEnabled key
+
+        // Create or open the HiberbootEnabled registry key
+        LONG createKeyResult = RegCreateKeyEx(
+            HKEY_LOCAL_MACHINE,
+            "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power",
+            0,
+            NULL,
+            REG_OPTION_NON_VOLATILE,
+            KEY_READ | KEY_WRITE,
+            NULL,
+            &hKey,
+            &disp);
+        if (createKeyResult != ERROR_SUCCESS) {
+            // Failed to create or open the registry key
+            Helper::printError("- Failed to disable Fast Boot via Registry (ERROR: 0, " + std::to_string(createKeyResult) + ")");
+            return false;
+        }
+
+        // Set the value of the HiberbootEnabled key to 0x00000000
+        LONG setValueResult = RegSetValueEx(
+            hKey,
+            "HiberbootEnabled",
+            NULL,
+            REG_DWORD,
+            (const BYTE*)&value,
+            sizeof(value));
+        if (setValueResult != ERROR_SUCCESS) {
+            // Failed to set the value of the registry key
+            Helper::printError("- Failed to disable Fast Boot via Registry (ERROR: 1, " + std::to_string(setValueResult) + ")");
+            return false;
+        }
+
+        // Fast boot is now disabled
+        Helper::printSuccess("- Successfully disabled Fast Boot");
+        return true;
+    }
+}
+
 // All Helper namespace functions
+void Helper::setupConsole()
+{
+    // Get a handle to the console's input buffer
+    HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
+
+    // Disable text selection in the console completely
+    DWORD mode = 0;
+    GetConsoleMode(hStdin, &mode);
+    SetConsoleMode(hStdin, mode & ~(ENABLE_QUICK_EDIT_MODE | ENABLE_EXTENDED_FLAGS));
+}
 void Helper::printSuccess(const std::string& message)
 {
     Color::setForegroundColor(Color::Green);
     std::cout << "[+] ";
+    Color::setForegroundColor(Color::White);
+    std::cout << message << std::endl;
+}
+void Helper::printConcern(const std::string& message)
+{
+    Color::setForegroundColor(Color::Yellow);
+    std::cout << "[-] ";
     Color::setForegroundColor(Color::White);
     std::cout << message << std::endl;
 }
@@ -574,7 +770,7 @@ void Helper::titleLoop()
             index++;
 
             // Create a new string to add the current thing being done
-            std::string console_title = message + std::string(35 - message.length(), ' ') + "|" + std::string(35 - Checks::current_process.length(), ' ') + Checks::current_process;
+            std::string console_title = Checks::current_process + std::string(35 - Checks::current_process.length() + 10, ' ') + "|" + std::string(35 - message.length() + 10, ' ') + message;
 
             // Set console title
             SetConsoleTitleA(console_title.c_str());

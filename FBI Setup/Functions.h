@@ -30,11 +30,17 @@ namespace Checks {
     bool isChromeInstalled();
     bool syncWindowsTime();
     bool disableChromeProtection();
+
+    bool checkWinver();
+    bool deleteSymbols();
+    bool checkFastBoot();
 }
 namespace Helper {
     inline bool titleLoopBool = true;
 
+    void setupConsole();
     void printSuccess(const std::string& message);
+    void printConcern(const std::string& message);
     void printError(const std::string& message);
     void runSystemCommand(const char* command);
     void titleLoop();
