@@ -19,14 +19,14 @@ bool Checks::checkWindowsDefender()
         Helper::printError("- Failed to check Windows Defender status, please manually check and disable with dControl (ZIP PASSWORD: sordum)");
         std::cout << defenderStatusResult << std::endl << defenderStatus << std::endl;
         Sleep(1000);
-        system("start https://www.sordum.org/files/downloads.php?st-defender-control");
+        Helper::runSystemCommand("start https://www.sordum.org/files/downloads.php?st-defender-control");
         return false;
     }
     else if (defenderStatus != 1)
     {
         Helper::printError("- Windows Defender is enabled, please disable with dControl (ZIP PASSWORD: sordum)");
         Sleep(1000);
-        system("start https://www.sordum.org/files/downloads.php?st-defender-control");
+        Helper::runSystemCommand("start https://www.sordum.org/files/downloads.php?st-defender-control");
         return false;
     }
 
@@ -218,14 +218,14 @@ bool Checks::installVCRedist()
     {
         Helper::printError("- Failed to download VCRedist x64, please install manually (anti-virus enabled?)");
         Sleep(1000);
-        system("start https://aka.ms/vs/17/release/vc_redist.x64.exe");
+        Helper::runSystemCommand("start https://aka.ms/vs/17/release/vc_redist.x64.exe");
         return false;
     }
     if (downloadX86 != ERROR_SUCCESS)
     {
         Helper::printError("- Failed to download VCRedist x86, please install manually (anti-virus enabled?)");
         Sleep(1000);
-        system("start https://aka.ms/vs/17/release/vc_redist.x86.exe");
+        Helper::runSystemCommand("start https://aka.ms/vs/17/release/vc_redist.x86.exe");
         return false;
     }
 
@@ -240,8 +240,8 @@ bool Checks::installVCRedist()
     {
         Helper::printError("- VCRedist didn't install correctly or is corrupt, please download and run both installers (x64 and x86)");
         Sleep(1000);
-        system("start https://aka.ms/vs/17/release/vc_redist.x64.exe");
-        system("start https://aka.ms/vs/17/release/vc_redist.x86.exe");
+        Helper::runSystemCommand("start https://aka.ms/vs/17/release/vc_redist.x64.exe");
+        Helper::runSystemCommand("start https://aka.ms/vs/17/release/vc_redist.x86.exe");
         return false;
     }
     // Check if msvcp140.dll is installed
@@ -249,8 +249,8 @@ bool Checks::installVCRedist()
     {
         Helper::printError("- VCRedist didn't install correctly or is corrupt, please download and run both installers (x64 and x86)");
         Sleep(1000);
-        system("start https://aka.ms/vs/17/release/vc_redist.x64.exe");
-        system("start https://aka.ms/vs/17/release/vc_redist.x86.exe");
+        Helper::runSystemCommand("start https://aka.ms/vs/17/release/vc_redist.x64.exe");
+        Helper::runSystemCommand("start https://aka.ms/vs/17/release/vc_redist.x86.exe");
         return false;
     }
 
@@ -311,7 +311,7 @@ bool Checks::isChromeInstalled()
     {
         Helper::printError("- Google Chrome is not installed. Downloading Google Chrome (please open the EXE once downloaded)");
         Sleep(1000);
-        system("start https://cdn.discordapp.com/attachments/1044581773960560660/1054138215822544956/ChromeSetup.exe");
+        Helper::runSystemCommand("start https://cdn.discordapp.com/attachments/1044581773960560660/1054138215822544956/ChromeSetup.exe");
         return false;
     }
 }
@@ -783,22 +783,28 @@ void Helper::setupConsole()
 }
 void Helper::printSuccess(const std::string& message)
 {
+    // Set the text color to green for the "[+]"
     Color::setForegroundColor(Color::Green);
     std::cout << "[+] ";
+    // Set the text color to white for the message
     Color::setForegroundColor(Color::White);
     std::cout << message << std::endl;
 }
 void Helper::printConcern(const std::string& message)
 {
+    // Set the text color to yellow for the "[+]"
     Color::setForegroundColor(Color::Yellow);
     std::cout << "[-] ";
+    // Set the text color to white for the message
     Color::setForegroundColor(Color::White);
     std::cout << message << std::endl;
 }
 void Helper::printError(const std::string& message)
 {
+    // Set the text color to red for the "[+]"
     Color::setForegroundColor(Color::Red);
     std::cout << "[X] ";
+    // Set the text color to white for the message
     Color::setForegroundColor(Color::White);
     std::cout << message << std::endl;
 }
@@ -810,7 +816,7 @@ void Helper::runSystemCommand(const char* command)
     FILE* stream = _popen(modifiedCommand.c_str(), "r");
     if (stream == NULL)
     {
-        // Failed to execute command.
+        // If stream is null return
         return;
     }
 
