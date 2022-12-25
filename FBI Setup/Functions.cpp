@@ -613,7 +613,7 @@ bool Checks::checkFastBoot()
             &disp);
         if (createKeyResult != ERROR_SUCCESS) {
             // Failed to create or open the registry key
-            Helper::printError("- Failed to disable Fast Boot via Registry (ERROR: 0, " + std::to_string(createKeyResult) + ")");
+            Helper::printError("- Failed to disable Fast Boot via Registry (Error: 0, " + std::to_string(createKeyResult) + ")");
             return false;
         }
 
@@ -627,7 +627,7 @@ bool Checks::checkFastBoot()
             sizeof(value));
         if (setValueResult != ERROR_SUCCESS) {
             // Failed to set the value of the registry key
-            Helper::printError("- Failed to disable Fast Boot via Registry (ERROR: 1, " + std::to_string(setValueResult) + ")");
+            Helper::printError("- Failed to disable Fast Boot via Registry (Error: 1, " + std::to_string(setValueResult) + ")");
             return false;
         }
 
