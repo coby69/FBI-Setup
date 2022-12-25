@@ -1,6 +1,6 @@
 // Made by Coby, all credits to me as I was the only one who contributed to it.
-// This version was made on 24/12/2022 (DD/MM/YYYY).
-// This is a BETA version and is not fully complete hence
+// This version was made on 25/12/2022 (DD/MM/YYYY).
+// This is an open-source project and is up to change at any point
 // many things are subject to change.
 
 #include "Includes.h"
@@ -39,30 +39,8 @@ int main()
     std::cout << "-----------------------------------------------------------------\n";
     Color::setForegroundColor(Color::Cyan);
     std::cout << "Successfully ran standard checks";
-
-    Checks::current_process = "Waiting for user input";
-
-    MessageBeep(MB_ICONWARNING);
-    if (MessageBoxA(NULL, "Would you like to run additional checks?\n(Recommended but not required)", "FBI Setup", MB_ICONQUESTION | MB_YESNO) == IDNO)
-    {
-        std::cout << ", feel free to close the application";
-
-        Helper::titleLoopBool = false;
-        titleLoopT.join();
-
-        SetConsoleTitleA("Checking completed!");
-
-        // While loop to hand the application
-        while (true)
-        {
-            // Hang the application
-        }
-
-        // Exit the program
-        return 1;
-    }
     
-    // Add a message informing the user of how long it will take
+    // Add a message informing the user we are running additional checks
     Color::setForegroundColor(Color::Cyan);
     std::cout << ", now running additional checks\n";
     Color::setForegroundColor(Color::LightGray);
@@ -72,22 +50,31 @@ int main()
     Checks::checkWinver();
     Checks::deleteSymbols();
     Checks::checkFastBoot();
+    Checks::checkExploitProtection();
+    Checks::checkSmartScreen();
 
     // Seperate and notify user of additional checks
     Color::setForegroundColor(Color::LightGray);
     std::cout << "-----------------------------------------------------------------\n";
     Color::setForegroundColor(Color::Cyan);
     std::cout << "Successfully ran additional checks, feel free to close the application";
+    Color::setForegroundColor(Color::Green);
+    std::cout << "\nIf requested, please take a screenshot of the program now and send it support";
+    if (Helper::restartRequired)
+    {
+        Color::setForegroundColor(Color::Red);
+        std::cout << "\n(Restart required to apply all changes)";
+    }
 
     Helper::titleLoopBool = false;
+    Sleep(300);
     titleLoopT.join();
-
-    SetConsoleTitleA("Checking completed!");
 
     // While loop to hand the application
     while (true)
     {
         // Hang the application
+        SetConsoleTitleA("Checking completed!");
     }
 
     // Exit the program

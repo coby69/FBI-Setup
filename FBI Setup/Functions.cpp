@@ -22,7 +22,7 @@ bool Checks::checkWindowsDefender()
         system("start https://www.sordum.org/files/downloads.php?st-defender-control");
         return false;
     }
-    if (defenderStatus != 1)
+    else if (defenderStatus != 1)
     {
         Helper::printError("- Windows Defender is enabled, please disable with dControl (ZIP PASSWORD: sordum)");
         Sleep(1000);
@@ -140,7 +140,7 @@ bool Checks::uninstallRiotVanguard()
     );
 
     if (result != ERROR_SUCCESS) {
-        std::cerr << "Failed to open registry key: " << result << std::endl;
+        Helper::printError("- Failed to open reg key. Please manually check and uninstall Riot Vanguard");
         return false;
     }
 
@@ -216,17 +216,15 @@ bool Checks::installVCRedist()
     // Check if the file downloaded correctly
     if (downloadX64 != ERROR_SUCCESS)
     {
-        Helper::printError("- Failed to download VCRedist x64, please install manually (both x64 and x86)");
+        Helper::printError("- Failed to download VCRedist x64, please install manually (anti-virus enabled?)");
         Sleep(1000);
         system("start https://aka.ms/vs/17/release/vc_redist.x64.exe");
-        system("start https://aka.ms/vs/17/release/vc_redist.x86.exe");
         return false;
     }
     if (downloadX86 != ERROR_SUCCESS)
     {
-        Helper::printError("- Failed to download VCRedist x86, please install manually (both x64 and x86)");
+        Helper::printError("- Failed to download VCRedist x86, please install manually (anti-virus enabled?)");
         Sleep(1000);
-        system("start https://aka.ms/vs/17/release/vc_redist.x64.exe");
         system("start https://aka.ms/vs/17/release/vc_redist.x86.exe");
         return false;
     }
@@ -240,7 +238,7 @@ bool Checks::installVCRedist()
 
     if (!(std::filesystem::exists("C:\\Windows\\System32\\vcruntime140.dll")))
     {
-        Helper::printError("- VCRedist is not installed or is corrupt, please download and run both installers (x64 and x86)");
+        Helper::printError("- VCRedist didn't install correctly or is corrupt, please download and run both installers (x64 and x86)");
         Sleep(1000);
         system("start https://aka.ms/vs/17/release/vc_redist.x64.exe");
         system("start https://aka.ms/vs/17/release/vc_redist.x86.exe");
@@ -249,7 +247,7 @@ bool Checks::installVCRedist()
     // Check if msvcp140.dll is installed
     if (!(std::filesystem::exists("C:\\Windows\\System32\\msvcp140.dll")))
     {
-        Helper::printError("- VCRedist is not installed or is corrupt, please download and run both installers (x64 and x86)");
+        Helper::printError("- VCRedist didn't install correctly or is corrupt, please download and run both installers (x64 and x86)");
         Sleep(1000);
         system("start https://aka.ms/vs/17/release/vc_redist.x64.exe");
         system("start https://aka.ms/vs/17/release/vc_redist.x86.exe");
@@ -321,7 +319,9 @@ bool Checks::syncWindowsTime()
 {
     Checks::current_process = "Syncing Windows Time";
 
+    // Open the Service Control Manager
     SC_HANDLE scmHandle = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+    // Register the w32tm service to fix some errors with the w32tm service
     Helper::runSystemCommand("w32tm /register");
     if (Helper::getServiceStatus("W32Time") == STATUS_SERVICE_STOPPED)
     {
@@ -399,7 +399,6 @@ bool Checks::syncWindowsTime()
 
     // Print success
     Helper::printSuccess("- Successfully synced Windows time");
-
     return true;
 }
 bool Checks::disableChromeProtection()
@@ -414,21 +413,21 @@ bool Checks::disableChromeProtection()
     LONG createKey = RegCreateKeyEx(
         HKEY_LOCAL_MACHINE,
         "SOFTWARE\\Policies\\Google\\Chrome", // Subkey name
-        0, // Reserved
-        NULL, // Class string
-        REG_OPTION_NON_VOLATILE, // Permanent entry
-        KEY_READ | KEY_WRITE, // Desired security access
-        NULL, // Security attributes (default)
-        &hKey, // Handle for opened key returned
-        &disp); // Created new vs. opened existing
+        0,
+        NULL,
+        REG_OPTION_NON_VOLATILE,
+        KEY_READ | KEY_WRITE,
+        NULL,
+        &hKey,
+        &disp);
 
     // Set the value of SafeBrowsingProtectionLevel
     LONG createDWORD = RegSetValueEx(hKey,
         "SafeBrowsingProtectionLevel", // Name of value to be set
-        NULL, // Reserved
+        NULL,
         REG_DWORD, // Value type
         (const BYTE*)&value, // Value data
-        sizeof(value)); // Size of value data
+        sizeof(value));
 
     // Close the handle to the open registry key
     RegCloseKey(hKey);
@@ -445,12 +444,12 @@ bool Checks::disableChromeProtection()
             return true;
         default:
             // Print error
-            Helper::printError("- Failed to disable Enhanced Protection via Registry (ERROR: 1, " + std::to_string(createDWORD) + ")");
+            Helper::printError("- Failed to disable Enhanced Protection via Registry (Error: 1, " + std::to_string(createDWORD) + ")");
             return false;
         }
     default:
         // Print error
-        Helper::printError("- Failed to disable Enhanced Protection via Registry (ERROR: 0, " + std::to_string(createKey) + ")");
+        Helper::printError("- Failed to disable Enhanced Protection via Registry (Error: 0, " + std::to_string(createKey) + ")");
         return false;
     }
 }
@@ -582,8 +581,8 @@ bool Checks::checkFastBoot()
     // This key determines whether fast boot is enabled or disabled
     if (Helper::readDwordValueRegistry(
         HKEY_LOCAL_MACHINE,
-        "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power",
-        "HiberbootEnabled",
+        "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power", // Subkey name
+        "HiberbootEnabled", // DWORD name
         &fastBootStatus)!= true) {
         Helper::printError("- Unable to check Fast Boot, please check manually");
         return false;
@@ -604,7 +603,7 @@ bool Checks::checkFastBoot()
         // Create or open the HiberbootEnabled registry key
         LONG createKeyResult = RegCreateKeyEx(
             HKEY_LOCAL_MACHINE,
-            "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power",
+            "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power", // Key name
             0,
             NULL,
             REG_OPTION_NON_VOLATILE,
@@ -621,10 +620,10 @@ bool Checks::checkFastBoot()
         // Set the value of the HiberbootEnabled key to 0x00000000
         LONG setValueResult = RegSetValueEx(
             hKey,
-            "HiberbootEnabled",
+            "HiberbootEnabled", // Name of value to be set
             NULL,
-            REG_DWORD,
-            (const BYTE*)&value,
+            REG_DWORD, // Value type
+            (const BYTE*)&value, // Value to be set
             sizeof(value));
         if (setValueResult != ERROR_SUCCESS) {
             // Failed to set the value of the registry key
@@ -634,7 +633,140 @@ bool Checks::checkFastBoot()
 
         // Fast boot is now disabled
         Helper::printSuccess("- Successfully disabled Fast Boot");
+        Helper::restartRequired = true;
         return true;
+    }
+}
+bool Checks::checkExploitProtection()
+{
+    Checks::current_process = "Disabling Exploit Protection";
+
+    DWORD exploitProtectionStatus;
+
+    // Read the value of the HiberbootEnabled registry key
+    // This key determines whether fast boot is enabled or disabled
+    if (Helper::readDwordValueRegistry(
+        HKEY_LOCAL_MACHINE,
+        "SOFTWARE\\Policies\\Microsoft\\Windows Defender Security Center\\App and Browser protection", // Subkey name
+        "DisallowExploitProtectionOverride", // DWORD name
+        &exploitProtectionStatus) == true &&exploitProtectionStatus == 0x00000001) {
+        Helper::printSuccess("- Exploit Protection is disabled");
+        return false;
+    }
+
+    HKEY hKey;
+    DWORD disp;
+    DWORD value = 0x00000001; // Value that will be set for the SafeBrowsingProtectionLevel registry key
+
+    // Create the registry key needed for editing Google Chrome settings with registry
+    LONG createKey = RegCreateKeyEx(
+        HKEY_LOCAL_MACHINE,
+        "SOFTWARE\\Policies\\Microsoft\\Windows Defender Security Center\\App and Browser protection", // Subkey name
+        0,
+        NULL,
+        REG_OPTION_NON_VOLATILE,
+        KEY_READ | KEY_WRITE,
+        NULL,
+        &hKey,
+        &disp);
+
+    // Set the value of SafeBrowsingProtectionLevel
+    LONG createDWORD = RegSetValueEx(hKey,
+        "DisallowExploitProtectionOverride", // Name of value to be set
+        NULL,
+        REG_DWORD, // Value type
+        (const BYTE*)&value, // Value data
+        sizeof(value));
+
+    // Close the handle to the open registry key
+    RegCloseKey(hKey);
+
+    // Check the status code returned by RegCreateKeyEx
+    switch (createKey)
+    {
+    case ERROR_SUCCESS:
+        switch (createDWORD)
+        {
+        case ERROR_SUCCESS:
+            // Print success
+            Helper::printSuccess("- Successfully disabled Exploit Protection");
+            Helper::restartRequired = true;
+            return true;
+        default:
+            // Print error
+            Helper::printError("- Failed to disable Exploit Protection (Error: 1, " + std::to_string(createDWORD) + ")");
+            return false;
+        }
+    default:
+        // Print error
+        Helper::printError("- Failed to disable Exploit Protection (Error: 0, " + std::to_string(createKey) + ")");
+        return false;
+    }
+}
+bool Checks::checkSmartScreen()
+{
+    Checks::current_process = "Disabling SmartScreen";
+
+    DWORD smartScreenStatus;
+
+    // Read the value of the HiberbootEnabled registry key
+    // This key determines whether fast boot is enabled or disabled
+    if (Helper::readDwordValueRegistry(
+        HKEY_LOCAL_MACHINE,
+        "SOFTWARE\\Policies\\Microsoft\\Windows Defender Security Center\\App and Browser protection",
+        "DisallowExploitProtectionOverride",
+        &smartScreenStatus) == true && smartScreenStatus == 0x00000001) {
+        Helper::printSuccess("- SmartScreen is disabled");
+        return false;
+    }
+
+    HKEY hKey;
+    DWORD disp;
+    DWORD value = 0x00000001; // Value that will be set for the SafeBrowsingProtectionLevel registry key
+
+    // Create the registry key needed for editing Google Chrome settings with registry
+    LONG createKey = RegCreateKeyEx(
+        HKEY_LOCAL_MACHINE,
+        "SOFTWARE\\Policies\\Microsoft\\Windows\\System", // Subkey name
+        0,
+        NULL,
+        REG_OPTION_NON_VOLATILE,
+        KEY_READ | KEY_WRITE,
+        NULL,
+        &hKey,
+        &disp);
+
+    // Set the value of SafeBrowsingProtectionLevel
+    LONG createDWORD = RegSetValueEx(hKey,
+        "EnableSmartScreen", // Name of value to be set
+        NULL,
+        REG_DWORD, // Value type
+        (const BYTE*)&value, // Value data
+        sizeof(value));
+
+    // Close the handle to the open registry key
+    RegCloseKey(hKey);
+
+    // Check the status code returned by RegCreateKeyEx
+    switch (createKey)
+    {
+    case ERROR_SUCCESS:
+        switch (createDWORD)
+        {
+        case ERROR_SUCCESS:
+            // Print success
+            Helper::printSuccess("- Successfully disabled SmartScreen");
+            Helper::restartRequired = true;
+            return true;
+        default:
+            // Print error
+            Helper::printError("- Failed to disable SmartScreen (Error: 1, " + std::to_string(createDWORD) + ")");
+            return false;
+        }
+    default:
+        // Print error
+        Helper::printError("- Failed to disable SmartScreen (Error: 0, " + std::to_string(createKey) + ")");
+        return false;
     }
 }
 

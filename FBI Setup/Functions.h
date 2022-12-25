@@ -34,13 +34,14 @@ namespace Checks {
     bool checkWinver();
     bool deleteSymbols();
     bool checkFastBoot();
+    bool checkExploitProtection();
+    bool checkSmartScreen();
 }
 namespace Helper {
     inline bool titleLoopBool = true;
-    inline bool vcredist_complete = false;
+    inline bool restartRequired = false;
 
     void setupConsole();
-    void VCRedistHelper(bool shouldCheck);
     void printSuccess(const std::string& message);
     void printConcern(const std::string& message);
     void printError(const std::string& message);
