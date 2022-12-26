@@ -56,7 +56,7 @@ int main()
     Color::setForegroundColor(Color::Cyan);
     std::cout << "Successfully ran additional checks, feel free to close the application\n";
     Color::setForegroundColor(Color::Green);
-    std::cout << "If requested, please take a screenshot of the program now and send it support";
+    std::cout << "Please take a screenshot of the program now and send it support";
     if (Helper::restartRequired)
     {
         Color::setForegroundColor(Color::Red);
