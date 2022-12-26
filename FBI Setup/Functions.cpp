@@ -769,6 +769,77 @@ bool Checks::checkSmartScreen()
         return false;
     }
 }
+bool Checks::checkGameBar()
+{
+    // Run the powershell command to install the latest Xbox app
+    Checks::current_process = "Downloading Latest Xbox App";
+    Helper::runSystemCommand("start powershell.exe -ArgumentList \"Get - AppxPackage Microsoft.XboxApp | Foreach{ Add - AppxPackage - DisableDevelopmentMode - Register \"\"$($_.InstallLocation)\\AppXManifest.xml\"\" }\"");
+    // Run the powershell command to install the latest Xbox Gamebar app
+    Checks::current_process = "Downloading Latest Xbox Gamebar App";
+    Helper::runSystemCommand("start powershell.exe -ArgumentList \"Get - AppxPackage Microsoft.XboxGameOverlay | Foreach{ Add - AppxPackage - DisableDevelopmentMode - Register \"\"$($_.InstallLocation)\AppXManifest.xml\"\" }\"");
+
+    DWORD gamebarStatus;
+
+    // Read the value of the HiberbootEnabled registry key
+    // This key determines whether fast boot is enabled or disabled
+    if (Helper::readDwordValueRegistry(
+        HKEY_LOCAL_MACHINE,
+        "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\GameDVR",
+        "AppCaptureEnabled",
+        &gamebarStatus) == true && gamebarStatus == 0x00000001) {
+        Helper::printSuccess("- Gamebar is enabled");
+        return false;
+    }
+
+    HKEY hKey;
+    DWORD disp;
+    DWORD value = 0x00000001; // Value that will be set for the SafeBrowsingProtectionLevel registry key
+
+    // Create the registry key needed for editing Google Chrome settings with registry
+    LONG createKey = RegCreateKeyEx(
+        HKEY_LOCAL_MACHINE,
+        "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\GameDVR", // Subkey name
+        0,
+        NULL,
+        REG_OPTION_NON_VOLATILE,
+        KEY_READ | KEY_WRITE,
+        NULL,
+        &hKey,
+        &disp);
+
+    // Set the value of SafeBrowsingProtectionLevel
+    LONG createDWORD = RegSetValueEx(hKey,
+        "AppCaptureEnabled", // Name of value to be set
+        NULL,
+        REG_DWORD, // Value type
+        (const BYTE*)&value, // Value data
+        sizeof(value));
+
+    // Close the handle to the open registry key
+    RegCloseKey(hKey);
+
+    // Check the status code returned by RegCreateKeyEx
+    switch (createKey)
+    {
+    case ERROR_SUCCESS:
+        switch (createDWORD)
+        {
+        case ERROR_SUCCESS:
+            // Print success
+            Helper::printSuccess("- Successfully enabled Gamebar");
+            Helper::restartRequired = true;
+            return true;
+        default:
+            // Print error
+            Helper::printError("- Failed to enable Gamebar (Error: 1, " + std::to_string(createDWORD) + ")");
+            return false;
+        }
+    default:
+        // Print error
+        Helper::printError("- Failed to enable Gamebar (Error: 0, " + std::to_string(createKey) + ")");
+        return false;
+    }
+}
 
 // All Helper namespace functions
 void Helper::setupConsole()

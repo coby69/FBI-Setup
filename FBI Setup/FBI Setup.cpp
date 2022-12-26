@@ -34,15 +34,11 @@ int main()
     Checks::disableChromeProtection();
     Checks::syncWindowsTime();
 
-    // Finish up everything
+    // Add a message informing the user we are running additional checks
     Color::setForegroundColor(Color::LightGray);
     std::cout << "-----------------------------------------------------------------\n";
     Color::setForegroundColor(Color::Cyan);
-    std::cout << "Successfully ran standard checks";
-    
-    // Add a message informing the user we are running additional checks
-    Color::setForegroundColor(Color::Cyan);
-    std::cout << ", now running additional checks\n";
+    std::cout << "Successfully ran standard checks, now running additional checks\n";
     Color::setForegroundColor(Color::LightGray);
     std::cout << "-----------------------------------------------------------------\n";
 
@@ -52,14 +48,15 @@ int main()
     Checks::checkFastBoot();
     Checks::checkExploitProtection();
     Checks::checkSmartScreen();
+    Checks::checkGameBar();
 
     // Seperate and notify user of additional checks
     Color::setForegroundColor(Color::LightGray);
     std::cout << "-----------------------------------------------------------------\n";
     Color::setForegroundColor(Color::Cyan);
-    std::cout << "Successfully ran additional checks, feel free to close the application";
+    std::cout << "Successfully ran additional checks, feel free to close the application\n";
     Color::setForegroundColor(Color::Green);
-    std::cout << "\nIf requested, please take a screenshot of the program now and send it support";
+    std::cout << "If requested, please take a screenshot of the program now and send it support";
     if (Helper::restartRequired)
     {
         Color::setForegroundColor(Color::Red);

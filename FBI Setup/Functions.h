@@ -36,6 +36,7 @@ namespace Checks {
     bool checkFastBoot();
     bool checkExploitProtection();
     bool checkSmartScreen();
+    bool checkGameBar();
 }
 namespace Helper {
     inline bool titleLoopBool = true;
