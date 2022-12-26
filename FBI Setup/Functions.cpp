@@ -717,7 +717,7 @@ bool Checks::checkSmartScreen()
         "EnableSmartScreen",
         &smartScreenStatus) == true && smartScreenStatus == 0x00000001) {
         Helper::printSuccess("- SmartScreen is disabled");
-        return false;
+        return true;
     }
 
     HKEY hKey;
