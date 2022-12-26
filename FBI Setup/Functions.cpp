@@ -780,7 +780,7 @@ bool Checks::checkGameBar()
 
     DWORD gamebarStatus;
 
-    // Read the value of the HiberbootEnabled registry key
+    // Read the value of the AppCaptureEnabled registry key
     // This key determines whether fast boot is enabled or disabled
     if (Helper::readDwordValueRegistry(
         HKEY_LOCAL_MACHINE,
@@ -793,9 +793,9 @@ bool Checks::checkGameBar()
 
     HKEY hKey;
     DWORD disp;
-    DWORD value = 0x00000001; // Value that will be set for the SafeBrowsingProtectionLevel registry key
+    DWORD value = 0x00000001; // Value that will be set for the AppCaptureEnabled registry key
 
-    // Create the registry key needed for editing Google Chrome settings with registry
+    // Create the registry key needed for editing Xbox Gamebar settings with registry
     LONG createKey = RegCreateKeyEx(
         HKEY_LOCAL_MACHINE,
         "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\GameDVR", // Subkey name
@@ -807,7 +807,7 @@ bool Checks::checkGameBar()
         &hKey,
         &disp);
 
-    // Set the value of SafeBrowsingProtectionLevel
+    // Set the value of AppCaptureEnabled
     LONG createDWORD = RegSetValueEx(hKey,
         "AppCaptureEnabled", // Name of value to be set
         NULL,
