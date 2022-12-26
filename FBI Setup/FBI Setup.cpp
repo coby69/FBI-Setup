@@ -1,6 +1,7 @@
 // Made by Coby, all credits to me as I was the only one who contributed to it.
 // This version was made on 25/12/2022 (DD/MM/YYYY).
 // This is an open-source project and any and all code can be modified and change at any point in time.
+// (thanks kali)
 
 #include "Includes.h"
 
