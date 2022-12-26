@@ -713,8 +713,8 @@ bool Checks::checkSmartScreen()
     // This key determines whether fast boot is enabled or disabled
     if (Helper::readDwordValueRegistry(
         HKEY_LOCAL_MACHINE,
-        "SOFTWARE\\Policies\\Microsoft\\Windows Defender Security Center\\App and Browser protection",
-        "DisallowExploitProtectionOverride",
+        "SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+        "EnableSmartScreen",
         &smartScreenStatus) == true && smartScreenStatus == 0x00000001) {
         Helper::printSuccess("- SmartScreen is disabled");
         return false;
