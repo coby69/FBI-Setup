@@ -709,22 +709,22 @@ bool Checks::checkSmartScreen()
 
     DWORD smartScreenStatus;
 
-    // Read the value of the HiberbootEnabled registry key
+    // Read the value of the EnableSmartScreen registry key
     // This key determines whether fast boot is enabled or disabled
     if (Helper::readDwordValueRegistry(
         HKEY_LOCAL_MACHINE,
         "SOFTWARE\\Policies\\Microsoft\\Windows\\System",
         "EnableSmartScreen",
-        &smartScreenStatus) == true && smartScreenStatus == 0x00000001) {
+        &smartScreenStatus) == true && smartScreenStatus == 0x00000000) {
         Helper::printSuccess("- SmartScreen is disabled");
         return true;
     }
 
     HKEY hKey;
     DWORD disp;
-    DWORD value = 0x00000001; // Value that will be set for the SafeBrowsingProtectionLevel registry key
+    DWORD value = 0x00000000; // Value that will be set for the EnableSmartScreen registry key
 
-    // Create the registry key needed for editing Google Chrome settings with registry
+    // Create the registry key needed for editing SmartScreen with registry
     LONG createKey = RegCreateKeyEx(
         HKEY_LOCAL_MACHINE,
         "SOFTWARE\\Policies\\Microsoft\\Windows\\System", // Subkey name
@@ -736,7 +736,7 @@ bool Checks::checkSmartScreen()
         &hKey,
         &disp);
 
-    // Set the value of SafeBrowsingProtectionLevel
+    // Set the value of EnableSmartScreen
     LONG createDWORD = RegSetValueEx(hKey,
         "EnableSmartScreen", // Name of value to be set
         NULL,
