@@ -8,6 +8,8 @@
 #include <winsvc.h>
 #include <urlmon.h>
 #include <map>
+#include <fstream>
+#include <sstream>
 #include "Functions.h"
 
 #pragma comment(lib, "urlmon.lib")

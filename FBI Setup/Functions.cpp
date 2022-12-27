@@ -5,34 +5,48 @@ bool Checks::checkWindowsDefender()
 {
     Checks::current_process = "Checking Windows Defender";
 
-    DWORD defenderStatus;
-    // Get the Windows Defender real time protection status
-    DWORD defenderStatusResult = Helper::readDwordValueRegistry(
-        HKEY_LOCAL_MACHINE,
-        "SOFTWARE\\Microsoft\\Windows Defender\\Real-Time Protection",
-        "DisableRealtimeMonitoring",
-        &defenderStatus);
-
-    // Check if it failed or if real time protection is enabled
-    if (defenderStatusResult != 1)
-    {
-        Helper::printError("- Failed to check Windows Defender status, please manually check and disable with dControl (ZIP PASSWORD: sordum)");
-        std::cout << defenderStatusResult << std::endl << defenderStatus << std::endl;
+    // Get the state of the Windows Defender service
+    SC_HANDLE scm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
+    if (scm == NULL) {
+        Helper::printError("- Failed to check Windows Defender. Please manually check and disable Windows Defender (PASSWORD: sordum)");
         Sleep(1000);
         Helper::runSystemCommand("start https://www.sordum.org/files/downloads.php?st-defender-control");
         return false;
     }
-    else if (defenderStatus != 1)
-    {
-        Helper::printError("- Windows Defender is enabled, please disable with dControl (ZIP PASSWORD: sordum)");
+    SC_HANDLE service = OpenService(scm, "WinDefend", SERVICE_QUERY_STATUS);
+    if (service == NULL) {
+        Helper::printError("- Failed to check Windows Defender. Please manually check and disable Windows Defender (PASSWORD: sordum)");
         Sleep(1000);
         Helper::runSystemCommand("start https://www.sordum.org/files/downloads.php?st-defender-control");
+        CloseServiceHandle(scm);
+        return false;
+    }
+    SERVICE_STATUS_PROCESS status;
+    DWORD bytesNeeded;
+    if (!QueryServiceStatusEx(service, SC_STATUS_PROCESS_INFO, (LPBYTE)&status, sizeof(status), &bytesNeeded)) {
+        Helper::printError("- Failed to check Windows Defender. Please manually check and disable Windows Defender (PASSWORD: sordum)");
+        Sleep(1000);
+        Helper::runSystemCommand("start https://www.sordum.org/files/downloads.php?st-defender-control");
+        CloseServiceHandle(service);
+        CloseServiceHandle(scm);
         return false;
     }
 
-    // If it reaches here Windows Defender's real time protection is disabled
-    Helper::printSuccess("- Windows Defender is disabled");
-    return true;
+    // Print the state of the Windows Defender service
+    if (status.dwCurrentState == SERVICE_RUNNING) {
+        Helper::printError("- Windows Defender is enabled, please disable with dControl (PASSWORD: sordum)");
+        Sleep(1000);
+        Helper::runSystemCommand("start https://www.sordum.org/files/downloads.php?st-defender-control");
+        CloseServiceHandle(service);
+        CloseServiceHandle(scm);
+        return false;
+    }
+    else {
+        Helper::printSuccess("- Windows Defender is disabled");
+        CloseServiceHandle(service);
+        CloseServiceHandle(scm);
+        return true;
+    }
 }
 bool Checks::check3rdPartyAntiVirus()
 {
@@ -405,11 +419,28 @@ bool Checks::disableChromeProtection()
 {
     Checks::current_process = "Disabling Google Chrome Protection";
 
+    DWORD safeBrowsingProtectionLevelStatus;
+
+    // Read the value of the SafeBrowsingProtectionLevel registry key
+    // This key determines the level of protection on Google Chrome
+    if (Helper::readDwordValueRegistry(
+        HKEY_LOCAL_MACHINE,
+        "SOFTWARE\\Policies\\Google\\Chrome", // Subkey name
+        "SafeBrowsingProtectionLevel", // DWORD name
+        &safeBrowsingProtectionLevelStatus) == true)
+    {
+        if (safeBrowsingProtectionLevelStatus == 0x00000000)
+        {
+            Helper::printSuccess("- Protection is disabled on Google Chrome is disabled");
+            return true;
+        }
+    }
+
     HKEY hKey;
     DWORD disp;
-    DWORD value = 0x00000000; // Value that will be set for the SafeBrowsingProtectionLevel registry key
+    DWORD value = 0x00000001; // Value that will be set for the SafeBrowsingProtectionLevel registry key
 
-    // Create the registry key needed for editing Google Chrome settings with registry
+    // Create the registry key needed for editing google chromes protection settings with registry
     LONG createKey = RegCreateKeyEx(
         HKEY_LOCAL_MACHINE,
         "SOFTWARE\\Policies\\Google\\Chrome", // Subkey name
@@ -440,16 +471,17 @@ bool Checks::disableChromeProtection()
         {
         case ERROR_SUCCESS:
             // Print success
-            Helper::printSuccess("- Successfully disabled Enhanced Protection on Google Chrome");
+            Helper::printSuccess("- Successfully disabled protection on Google Chrome");
+            Helper::restartRequired = true;
             return true;
         default:
             // Print error
-            Helper::printError("- Failed to disable Enhanced Protection via Registry (Error: 1, " + std::to_string(createDWORD) + ")");
+            Helper::printError("- Failed to disable protection on Google Chrome (Error: 1, " + std::to_string(createDWORD) + ")");
             return false;
         }
     default:
         // Print error
-        Helper::printError("- Failed to disable Enhanced Protection via Registry (Error: 0, " + std::to_string(createKey) + ")");
+        Helper::printError("- Failed to disable protection on Google Chrome (Error: 0, " + std::to_string(createKey) + ")");
         return false;
     }
 }
@@ -578,87 +610,95 @@ bool Checks::checkFastBoot()
     DWORD fastBootStatus;
 
     // Read the value of the HiberbootEnabled registry key
-    // This key determines whether fast boot is enabled or disabled
+    // This key determines whether Fast Boot is enabled or disabled
     if (Helper::readDwordValueRegistry(
         HKEY_LOCAL_MACHINE,
         "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power", // Subkey name
         "HiberbootEnabled", // DWORD name
-        &fastBootStatus)!= true) {
-        Helper::printError("- Unable to check Fast Boot, please check manually");
-        return false;
-    }
-
-    // Check the value of the HiberbootEnabled key
-    if (fastBootStatus == 0x00000000) {
-        // Fast boot is disabled
-        Helper::printSuccess("- Fast Boot is disabled");
-        return true;
-    }
-    else {
-        // Fast boot is enabled
-        HKEY hKey;
-        DWORD disp;
-        DWORD value = 0x00000000; // Value to set for the HiberbootEnabled key
-
-        // Create or open the HiberbootEnabled registry key
-        LONG createKeyResult = RegCreateKeyEx(
-            HKEY_LOCAL_MACHINE,
-            "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power", // Key name
-            0,
-            NULL,
-            REG_OPTION_NON_VOLATILE,
-            KEY_READ | KEY_WRITE,
-            NULL,
-            &hKey,
-            &disp);
-        if (createKeyResult != ERROR_SUCCESS) {
-            // Failed to create or open the registry key
-            Helper::printError("- Failed to disable Fast Boot via Registry (Error: 0, " + std::to_string(createKeyResult) + ")");
-            return false;
+        &fastBootStatus) == true)
+    {
+        if (fastBootStatus == 0x00000000)
+        {
+            Helper::printSuccess("- Fast Boot is disabled");
+            return true;
         }
-
-        // Set the value of the HiberbootEnabled key to 0x00000000
-        LONG setValueResult = RegSetValueEx(
-            hKey,
-            "HiberbootEnabled", // Name of value to be set
-            NULL,
-            REG_DWORD, // Value type
-            (const BYTE*)&value, // Value to be set
-            sizeof(value));
-        if (setValueResult != ERROR_SUCCESS) {
-            // Failed to set the value of the registry key
-            Helper::printError("- Failed to disable Fast Boot via Registry (Error: 1, " + std::to_string(setValueResult) + ")");
-            return false;
-        }
-
-        // Fast boot is now disabled
-        Helper::printSuccess("- Successfully disabled Fast Boot");
-        Helper::restartRequired = true;
-        return true;
-    }
-}
-bool Checks::checkExploitProtection()
-{
-    Checks::current_process = "Disabling Exploit Protection";
-
-    DWORD exploitProtectionStatus;
-
-    // Read the value of the HiberbootEnabled registry key
-    // This key determines whether fast boot is enabled or disabled
-    if (Helper::readDwordValueRegistry(
-        HKEY_LOCAL_MACHINE,
-        "SOFTWARE\\Policies\\Microsoft\\Windows Defender Security Center\\App and Browser protection", // Subkey name
-        "DisallowExploitProtectionOverride", // DWORD name
-        &exploitProtectionStatus) == true &&exploitProtectionStatus == 0x00000001) {
-        Helper::printSuccess("- Exploit Protection is disabled");
-        return false;
     }
 
     HKEY hKey;
     DWORD disp;
-    DWORD value = 0x00000001; // Value that will be set for the SafeBrowsingProtectionLevel registry key
+    DWORD value = 0x00000001; // Value that will be set for the HiberbootEnabled registry key
 
-    // Create the registry key needed for editing Google Chrome settings with registry
+    // Create the registry key needed for editing Power Settings settings with registry
+    LONG createKey = RegCreateKeyEx(
+        HKEY_LOCAL_MACHINE,
+        "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power", // Subkey name
+        0,
+        NULL,
+        REG_OPTION_NON_VOLATILE,
+        KEY_READ | KEY_WRITE,
+        NULL,
+        &hKey,
+        &disp);
+
+    // Set the value of HiberbootEnabled
+    LONG createDWORD = RegSetValueEx(hKey,
+        "HiberbootEnabled", // Name of value to be set
+        NULL,
+        REG_DWORD, // Value type
+        (const BYTE*)&value, // Value data
+        sizeof(value));
+
+    // Close the handle to the open registry key
+    RegCloseKey(hKey);
+
+    // Check the status code returned by RegCreateKeyEx
+    switch (createKey)
+    {
+    case ERROR_SUCCESS:
+        switch (createDWORD)
+        {
+        case ERROR_SUCCESS:
+            // Print success
+            Helper::printSuccess("- Successfully disabled Fast Boot");
+            Helper::restartRequired = true;
+            return true;
+        default:
+            // Print error
+            Helper::printError("- Failed to disable Fast Boot (Error: 1, " + std::to_string(createDWORD) + ")");
+            return false;
+        }
+    default:
+        // Print error
+        Helper::printError("- Failed to disable Fast Boot (Error: 0, " + std::to_string(createKey) + ")");
+        return false;
+    }
+}
+bool Checks::checkExploitProtection()
+{
+    Checks::current_process = "Checking Exploit Protection";
+
+    DWORD exploitProtectionStatus;
+
+    // Read the value of the DisallowExploitProtectionOverride registry key
+    // This key determines whether Exploit Protection is enabled or disabled
+    if (Helper::readDwordValueRegistry(
+        HKEY_LOCAL_MACHINE,
+        "SOFTWARE\\Policies\\Microsoft\\Windows Defender Security Center\\App and Browser protection", // Subkey name
+        "DisallowExploitProtectionOverride", // DWORD name
+        &exploitProtectionStatus) == true)
+    {
+        if (exploitProtectionStatus == 0x00000000)
+        {
+            Helper::printSuccess("- Exploit Protection is disabled");
+            return true;
+        }
+    }
+
+    HKEY hKey;
+    DWORD disp;
+    DWORD value = 0x00000001; // Value that will be set for the DisallowExploitProtectionOverride registry key
+
+    // Create the registry key needed for editing Exploit Protection settings with registry
     LONG createKey = RegCreateKeyEx(
         HKEY_LOCAL_MACHINE,
         "SOFTWARE\\Policies\\Microsoft\\Windows Defender Security Center\\App and Browser protection", // Subkey name
@@ -670,7 +710,7 @@ bool Checks::checkExploitProtection()
         &hKey,
         &disp);
 
-    // Set the value of SafeBrowsingProtectionLevel
+    // Set the value of DisallowExploitProtectionOverride
     LONG createDWORD = RegSetValueEx(hKey,
         "DisallowExploitProtectionOverride", // Name of value to be set
         NULL,
@@ -705,19 +745,23 @@ bool Checks::checkExploitProtection()
 }
 bool Checks::checkSmartScreen()
 {
-    Checks::current_process = "Disabling SmartScreen";
+    Checks::current_process = "Checking SmartScreen";
 
     DWORD smartScreenStatus;
 
     // Read the value of the EnableSmartScreen registry key
-    // This key determines whether fast boot is enabled or disabled
+    // This key determines whether Smartscreen is enabled or disabled
     if (Helper::readDwordValueRegistry(
         HKEY_LOCAL_MACHINE,
-        "SOFTWARE\\Policies\\Microsoft\\Windows\\System",
-        "EnableSmartScreen",
-        &smartScreenStatus) == true && smartScreenStatus == 0x00000000) {
-        Helper::printSuccess("- SmartScreen is disabled");
-        return true;
+        "SOFTWARE\\Policies\\Microsoft\\Windows\\System", // Subkey name
+        "EnableSmartScreen", // DWORD name
+        &smartScreenStatus) == true)
+    {
+        if (smartScreenStatus == 0x00000000)
+        {
+            Helper::printSuccess("- SmartScreen is disabled");
+            return true;
+        }
     }
 
     HKEY hKey;
@@ -778,17 +822,23 @@ bool Checks::checkGameBar()
     Checks::current_process = "Downloading Latest Xbox Gamebar App";
     Helper::runSystemCommand("start powershell.exe -ArgumentList \"Get - AppxPackage Microsoft.XboxGameOverlay | Foreach{ Add - AppxPackage - DisableDevelopmentMode - Register \"\"$($_.InstallLocation)\AppXManifest.xml\"\" }\"");
 
+    Checks::current_process = "Checking Xbox Gamebar";
+
     DWORD gamebarStatus;
 
     // Read the value of the AppCaptureEnabled registry key
-    // This key determines whether fast boot is enabled or disabled
+    // This key determines whether the Xbox Gamebar is enabled or disabled
     if (Helper::readDwordValueRegistry(
         HKEY_LOCAL_MACHINE,
-        "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\GameDVR",
-        "AppCaptureEnabled",
-        &gamebarStatus) == true && gamebarStatus == 0x00000001) {
-        Helper::printSuccess("- Gamebar is enabled");
-        return false;
+        "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\GameDVR", // Subkey name
+        "AppCaptureEnabled", // DWORD name
+        &gamebarStatus) == true)
+    {
+        if (gamebarStatus == 0x00000001)
+        {
+            Helper::printSuccess("- Gamebar is enabled");
+            return true;
+        }
     }
 
     HKEY hKey;
@@ -842,65 +892,6 @@ bool Checks::checkGameBar()
 }
 
 // All Helper namespace functions
-void Helper::setupConsole()
-{
-    // Get a handle to the console's input buffer
-    HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
-
-    // Disable text selection in the console completely
-    DWORD mode = 0;
-    GetConsoleMode(hStdin, &mode);
-    SetConsoleMode(hStdin, mode & ~(ENABLE_QUICK_EDIT_MODE | ENABLE_EXTENDED_FLAGS));
-}
-void Helper::printSuccess(const std::string& message)
-{
-    // Set the text color to green for the "[+]"
-    Color::setForegroundColor(Color::Green);
-    std::cout << "[+] ";
-    // Set the text color to white for the message
-    Color::setForegroundColor(Color::White);
-    std::cout << message << std::endl;
-}
-void Helper::printConcern(const std::string& message)
-{
-    // Set the text color to yellow for the "[+]"
-    Color::setForegroundColor(Color::Yellow);
-    std::cout << "[-] ";
-    // Set the text color to white for the message
-    Color::setForegroundColor(Color::White);
-    std::cout << message << std::endl;
-}
-void Helper::printError(const std::string& message)
-{
-    // Set the text color to red for the "[+]"
-    Color::setForegroundColor(Color::Red);
-    std::cout << "[X] ";
-    // Set the text color to white for the message
-    Color::setForegroundColor(Color::White);
-    std::cout << message << std::endl;
-}
-void Helper::runSystemCommand(const char* command)
-{
-    // Open a stream to the command's standard output.
-    std::string modifiedCommand = command;
-    modifiedCommand += " 2>nul";
-    FILE* stream = _popen(modifiedCommand.c_str(), "r");
-    if (stream == NULL)
-    {
-        // If stream is null return
-        return;
-    }
-
-    // Read the output from the stream and discard it.
-    char buffer[1024];
-    while (fgets(buffer, sizeof(buffer), stream) != NULL)
-    {
-        // Do nothing.
-    }
-
-    // Close the stream and wait for the command to finish.
-    _pclose(stream);
-}
 void Helper::titleLoop()
 {
     // Set delay vars so they are easily changeable
@@ -983,7 +974,7 @@ void Helper::titleLoop()
             index++;
 
             // Create a new string to add the current thing being done
-            std::string console_title = Checks::current_process + std::string(35 - Checks::current_process.length() + 10, ' ') + "|" + std::string(35 - message.length() + 10, ' ') + message;
+            std::string console_title = Checks::current_process + std::string(35 - Checks::current_process.length(), ' ') + "|" + std::string(35 - message.length(), ' ') + message;
 
             // Set console title
             SetConsoleTitleA(console_title.c_str());
@@ -1006,6 +997,65 @@ end_of_loop:
     {
         // Do nothing leaving the thread joinable
     }
+}
+void Helper::setupConsole()
+{
+    // Get a handle to the console's input buffer
+    HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
+
+    // Disable text selection in the console completely
+    DWORD mode = 0;
+    GetConsoleMode(hStdin, &mode);
+    SetConsoleMode(hStdin, mode & ~(ENABLE_QUICK_EDIT_MODE | ENABLE_EXTENDED_FLAGS));
+}
+void Helper::printSuccess(const std::string& message)
+{
+    // Set the text color to green for the "[+]"
+    Color::setForegroundColor(Color::Green);
+    std::cout << "[+] ";
+    // Set the text color to white for the message
+    Color::setForegroundColor(Color::White);
+    std::cout << message << std::endl;
+}
+void Helper::printConcern(const std::string& message)
+{
+    // Set the text color to yellow for the "[+]"
+    Color::setForegroundColor(Color::Yellow);
+    std::cout << "[-] ";
+    // Set the text color to white for the message
+    Color::setForegroundColor(Color::White);
+    std::cout << message << std::endl;
+}
+void Helper::printError(const std::string& message)
+{
+    // Set the text color to red for the "[+]"
+    Color::setForegroundColor(Color::Red);
+    std::cout << "[X] ";
+    // Set the text color to white for the message
+    Color::setForegroundColor(Color::White);
+    std::cout << message << std::endl;
+}
+void Helper::runSystemCommand(const char* command)
+{
+    // Open a stream to the command's standard output.
+    std::string modifiedCommand = command;
+    modifiedCommand += " 2>nul";
+    FILE* stream = _popen(modifiedCommand.c_str(), "r");
+    if (stream == NULL)
+    {
+        // If stream is null return
+        return;
+    }
+
+    // Read the output from the stream and discard it.
+    char buffer[1024];
+    while (fgets(buffer, sizeof(buffer), stream) != NULL)
+    {
+        // Do nothing.
+    }
+
+    // Close the stream and wait for the command to finish.
+    _pclose(stream);
 }
 bool Helper::readDwordValueRegistry(HKEY hKeyParent, LPCSTR subkey, LPCSTR valueName, DWORD* readData) {
     // Open the registry key
