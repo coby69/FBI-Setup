@@ -212,6 +212,7 @@ bool Checks::uninstallRiotVanguard()
 bool Checks::installVCRedist()
 {
     Checks::current_process = "Downloading VCRedist";
+    Helper::vcComplete = false;
 
     // Download the 2 VCRedist setups
     HRESULT downloadX64 = URLDownloadToFileA(
@@ -233,6 +234,7 @@ bool Checks::installVCRedist()
         Helper::printError("- Failed to download VCRedist x64, please install manually (anti-virus enabled?)");
         Sleep(1000);
         Helper::runSystemCommand("start https://aka.ms/vs/17/release/vc_redist.x64.exe");
+        Helper::vcComplete = true;
         return false;
     }
     if (downloadX86 != ERROR_SUCCESS)
@@ -240,6 +242,7 @@ bool Checks::installVCRedist()
         Helper::printError("- Failed to download VCRedist x86, please install manually (anti-virus enabled?)");
         Sleep(1000);
         Helper::runSystemCommand("start https://aka.ms/vs/17/release/vc_redist.x86.exe");
+        Helper::vcComplete = true;
         return false;
     }
 
@@ -256,6 +259,7 @@ bool Checks::installVCRedist()
         Sleep(1000);
         Helper::runSystemCommand("start https://aka.ms/vs/17/release/vc_redist.x64.exe");
         Helper::runSystemCommand("start https://aka.ms/vs/17/release/vc_redist.x86.exe");
+        Helper::vcComplete = true;
         return false;
     }
     // Check if msvcp140.dll is installed
@@ -265,11 +269,13 @@ bool Checks::installVCRedist()
         Sleep(1000);
         Helper::runSystemCommand("start https://aka.ms/vs/17/release/vc_redist.x64.exe");
         Helper::runSystemCommand("start https://aka.ms/vs/17/release/vc_redist.x86.exe");
+        Helper::vcComplete = true;
         return false;
     }
 
     // If it reaches here VCRedist is installed
     Helper::printSuccess("- VCRedist is installed");
+    Helper::vcComplete = true;
     return true;
 }
 bool Checks::checkSecureBoot()
@@ -687,7 +693,7 @@ bool Checks::checkExploitProtection()
         "DisallowExploitProtectionOverride", // DWORD name
         &exploitProtectionStatus) == true)
     {
-        if (exploitProtectionStatus == 0x00000000)
+        if (exploitProtectionStatus == 0x00000001)
         {
             Helper::printSuccess("- Exploit Protection is disabled");
             return true;

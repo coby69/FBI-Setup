@@ -41,6 +41,8 @@ namespace Checks {
 namespace Helper {
     inline bool titleLoopBool = true;
     inline bool restartRequired = false;
+    inline bool vcComplete = false;
+    inline int vcCheckSleepTimes = 0;
 
     void setupConsole();
     void printSuccess(const std::string& message);

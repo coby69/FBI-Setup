@@ -29,7 +29,18 @@ int main()
     Checks::checkSecureBoot();
     Checks::checkCPUV();
     Checks::uninstallRiotVanguard();
-    Checks::installVCRedist();
+    std::thread vcThread(Checks::installVCRedist);
+    while (Helper::vcComplete == false)
+    {
+        Sleep(10);
+        Helper::vcCheckSleepTimes = Helper::vcCheckSleepTimes + 10;
+
+        if (Helper::vcCheckSleepTimes >= 30000)
+        {
+            Helper::printConcern("- VCRedist is taking too long, continuing without waiting (still downloading)");
+            break;
+        }
+    }
     Checks::isChromeInstalled();
     Checks::disableChromeProtection();
     Checks::syncWindowsTime();
@@ -50,6 +61,21 @@ int main()
     Checks::checkSmartScreen();
     Checks::checkGameBar();
 
+    if (Helper::vcComplete == false)
+    {
+        while (Helper::vcComplete == false)
+        {
+            Sleep(10);
+            Helper::vcCheckSleepTimes = Helper::vcCheckSleepTimes + 10;
+
+            if (Helper::vcCheckSleepTimes >= 60000)
+            {
+                Helper::printConcern("- VCRedist is taking very long, restart program and try again (or wait)");
+                break;
+            }
+        }
+    }
+
     // Seperate and notify user of additional checks
     Color::setForegroundColor(Color::LightGray);
     std::cout << "-----------------------------------------------------------------\n";
@@ -63,17 +89,13 @@ int main()
         std::cout << "\n(Restart required to apply all changes)";
     }
 
+    std::cout << "\n";
+
     Helper::titleLoopBool = false;
     Sleep(300);
     titleLoopT.join();
+    vcThread.join();
 
-    // While loop to hand the application
-    while (true)
-    {
-        // Hang the application
-        SetConsoleTitleA("Checking completed!");
-    }
-
-    // Exit the program
-    return 1;
+    // Hang the application
+    SetConsoleTitleA("Checking completed!");
 }
