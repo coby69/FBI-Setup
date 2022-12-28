@@ -96,6 +96,9 @@ int main()
     titleLoopT.join();
     vcThread.join();
 
-    // Hang the application
-    SetConsoleTitleA("Checking completed!");
+    while (true)
+    {
+        // Hang the application
+        SetConsoleTitleA("Checking completed!");
+    }
 }
