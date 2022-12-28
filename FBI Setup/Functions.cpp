@@ -234,6 +234,7 @@ bool Checks::installVCRedist()
         Helper::printError("- Failed to download VCRedist x64, please install manually (anti-virus enabled?)");
         Sleep(1000);
         Helper::runSystemCommand("start https://aka.ms/vs/17/release/vc_redist.x64.exe");
+        Helper::runSystemCommand("start https://aka.ms/vs/17/release/vc_redist.x86.exe");
         Helper::vcComplete = true;
         return false;
     }
@@ -241,6 +242,7 @@ bool Checks::installVCRedist()
     {
         Helper::printError("- Failed to download VCRedist x86, please install manually (anti-virus enabled?)");
         Sleep(1000);
+        Helper::runSystemCommand("start https://aka.ms/vs/17/release/vc_redist.x64.exe");
         Helper::runSystemCommand("start https://aka.ms/vs/17/release/vc_redist.x86.exe");
         Helper::vcComplete = true;
         return false;
