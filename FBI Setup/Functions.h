@@ -21,22 +21,22 @@ enum ServiceStatus
 namespace Checks {
     inline std::string current_process = "Initalising";
 
-    bool checkWindowsDefender();
-    bool check3rdPartyAntiVirus();
-    bool checkCPUV();
-    bool uninstallRiotVanguard();
-    bool installVCRedist();
-    bool checkSecureBoot();
-    bool isChromeInstalled();
-    bool syncWindowsTime();
-    bool disableChromeProtection();
+    void checkWindowsDefender();
+    void check3rdPartyAntiVirus();
+    void checkCPUV();
+    void uninstallRiotVanguard();
+    void installVCRedist();
+    void checkSecureBoot();
+    void isChromeInstalled();
+    void syncWindowsTime();
+    void disableChromeProtection();
 
-    bool checkWinver();
-    bool deleteSymbols();
-    bool checkFastBoot();
-    bool checkExploitProtection();
-    bool checkSmartScreen();
-    bool checkGameBar();
+    void checkWinver();
+    void deleteSymbols();
+    void checkFastBoot();
+    void checkExploitProtection();
+    void checkSmartScreen();
+    void checkGameBar();
 }
 namespace Helper {
     inline bool titleLoopBool = true;
@@ -45,7 +45,7 @@ namespace Helper {
     inline int vcCheckSleepTimes = 0;
 
     void setupConsole();
-    void printSuccess(const std::string& message);
+    void printSuccess(const std::string& message, bool changed);
     void printConcern(const std::string& message);
     void printError(const std::string& message);
     void runSystemCommand(const char* command);

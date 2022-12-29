@@ -1,7 +1,11 @@
-// Made by Coby, all credits to me as I was the only one who contributed to it.
-// This version was made on 27/12/2022 (DD/MM/YYYY).
+// Made by Coby (thanks Kali for the read DWORD function)
+// This version was made on 29/12/2022 (DD/MM/YYYY).
 // This is an open-source project and any and all code can be modified and change at any point in time.
-// (thanks Kali for the read DWORD function)
+
+// Copyright 2022 AppleCheats.cc
+//
+// This code is released under the GNU General Public License (GPL).
+// See https://www.gnu.org/licenses/gpl-3.0.txt for more information.
 
 #include "Includes.h"
 

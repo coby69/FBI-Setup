@@ -1,7 +1,7 @@
 #include "Functions.h"
 
 // All Checks namespace functions
-bool Checks::checkWindowsDefender()
+void Checks::checkWindowsDefender()
 {
     Checks::current_process = "Checking Windows Defender";
 
@@ -11,7 +11,7 @@ bool Checks::checkWindowsDefender()
         Helper::printError("- Failed to check Windows Defender. Please manually check and disable Windows Defender (PASSWORD: sordum)");
         Sleep(1000);
         Helper::runSystemCommand("start https://www.sordum.org/files/downloads.php?st-defender-control");
-        return false;
+        return;
     }
     SC_HANDLE service = OpenService(scm, "WinDefend", SERVICE_QUERY_STATUS);
     if (service == NULL) {
@@ -19,7 +19,7 @@ bool Checks::checkWindowsDefender()
         Sleep(1000);
         Helper::runSystemCommand("start https://www.sordum.org/files/downloads.php?st-defender-control");
         CloseServiceHandle(scm);
-        return false;
+        return;
     }
     SERVICE_STATUS_PROCESS status;
     DWORD bytesNeeded;
@@ -29,7 +29,7 @@ bool Checks::checkWindowsDefender()
         Helper::runSystemCommand("start https://www.sordum.org/files/downloads.php?st-defender-control");
         CloseServiceHandle(service);
         CloseServiceHandle(scm);
-        return false;
+        return;
     }
 
     // Print the state of the Windows Defender service
@@ -39,16 +39,16 @@ bool Checks::checkWindowsDefender()
         Helper::runSystemCommand("start https://www.sordum.org/files/downloads.php?st-defender-control");
         CloseServiceHandle(service);
         CloseServiceHandle(scm);
-        return false;
+        return;
     }
     else {
-        Helper::printSuccess("- Windows Defender is disabled");
+        Helper::printSuccess("- Windows Defender is disabled", false);
         CloseServiceHandle(service);
         CloseServiceHandle(scm);
-        return true;
+        return;
     }
 }
-bool Checks::check3rdPartyAntiVirus()
+void Checks::check3rdPartyAntiVirus()
 {
     Checks::current_process = "Checking for 3rd Party AV's";
 
@@ -58,7 +58,7 @@ bool Checks::check3rdPartyAntiVirus()
     std::FILE* pipe = _popen(command.c_str(), "r");
     if (!pipe) {
         Helper::printError("- Failed to check for 3rd party Anti-Viruses, please manually check and disable/uninstall");
-        return false;
+        return;
     }
 
     // Read the output from the command
@@ -99,13 +99,13 @@ bool Checks::check3rdPartyAntiVirus()
     if (!antivirusList.empty()) {
         std::string message = "- A 3rd party Anti-Virus is installed, please uninstall or disable it. (" + antivirusList + ")";
         Helper::printError(message);
-        return false;
+        return;
     }
 
-    Helper::printSuccess("- No 3rd party Anti-Virus was detected");
-    return true;
+    Helper::printSuccess("- No 3rd party Anti-Virus was detected", false);
+    return;
 }
-bool Checks::checkCPUV()
+void Checks::checkCPUV()
 {
     Checks::current_process = "Checking CPU-V";
 
@@ -114,7 +114,7 @@ bool Checks::checkCPUV()
     std::FILE* pipe = _popen(command.c_str(), "r");
     if (!pipe) {
         Helper::printError("- Failed to check if CPUV is enabled, please manually check and disable in BIOS");
-        return false;
+        return;
     }
 
     // Read the output from the command
@@ -131,15 +131,15 @@ bool Checks::checkCPUV()
     if (result.find("True") != std::string::npos)
     {
         Helper::printError("- CPUV is enabled in BIOS, please disable in BIOS");
-        return false;
+        return;
     }
     else
     {
-        Helper::printSuccess("- CPUV is disabled");
-        return false;
+        Helper::printSuccess("- CPUV is disabled", false);
+        return;
     }
 }
-bool Checks::uninstallRiotVanguard()
+void Checks::uninstallRiotVanguard()
 {
     Checks::current_process = "Checking for Riot Vanguard";
 
@@ -155,7 +155,7 @@ bool Checks::uninstallRiotVanguard()
 
     if (result != ERROR_SUCCESS) {
         Helper::printError("- Failed to open reg key. Please manually check and uninstall Riot Vanguard");
-        return false;
+        return;
     }
 
     // Enumerate the subkeys of the registry key
@@ -169,7 +169,7 @@ bool Checks::uninstallRiotVanguard()
         if (result != ERROR_SUCCESS) {
             Helper::printError("- Failed to check if Riot Vanguard is installed, please manually check and uninstall");
             RegCloseKey(hKey);
-            return false;
+            return;
         }
 
         // Read the "DisplayName" value from the subkey
@@ -185,12 +185,12 @@ bool Checks::uninstallRiotVanguard()
                 if (std::filesystem::exists("C:\\Program Files\\Riot Vanguard\\installer.exe"))
                 {
                     _spawnl(_P_WAIT, "C:\\Program Files\\Riot Vanguard\\installer.exe", "installer.exe", NULL);
-                    Helper::printSuccess("- Successfully prompted the user to uninstall Riot Vanguard (press Yes to uninstall)");
-                    return true;
+                    Helper::printSuccess("- Successfully prompted the user to uninstall Riot Vanguard (press Yes to uninstall)", true);
+                    return;
                 }
 
                 Helper::printError("- Failed to uninstall Riot Vanguard, please manually uninstall");
-                return false;
+                return;
             }
         }
 
@@ -206,10 +206,10 @@ bool Checks::uninstallRiotVanguard()
     RegCloseKey(hKey);
 
     // If it gets here then "Riot Vanguard" is not installed
-    Helper::printSuccess("- Riot Vanguard is not installed");
-    return true;
+    Helper::printSuccess("- Riot Vanguard is not installed", false);
+    return;
 }
-bool Checks::installVCRedist()
+void Checks::installVCRedist()
 {
     Checks::current_process = "Downloading VCRedist";
     Helper::vcComplete = false;
@@ -236,7 +236,7 @@ bool Checks::installVCRedist()
         Helper::runSystemCommand("start https://aka.ms/vs/17/release/vc_redist.x64.exe");
         Helper::runSystemCommand("start https://aka.ms/vs/17/release/vc_redist.x86.exe");
         Helper::vcComplete = true;
-        return false;
+        return;
     }
     if (downloadX86 != ERROR_SUCCESS)
     {
@@ -245,7 +245,7 @@ bool Checks::installVCRedist()
         Helper::runSystemCommand("start https://aka.ms/vs/17/release/vc_redist.x64.exe");
         Helper::runSystemCommand("start https://aka.ms/vs/17/release/vc_redist.x86.exe");
         Helper::vcComplete = true;
-        return false;
+        return;
     }
 
     // Install both VCRedist's silently
@@ -262,7 +262,7 @@ bool Checks::installVCRedist()
         Helper::runSystemCommand("start https://aka.ms/vs/17/release/vc_redist.x64.exe");
         Helper::runSystemCommand("start https://aka.ms/vs/17/release/vc_redist.x86.exe");
         Helper::vcComplete = true;
-        return false;
+        return;
     }
     // Check if msvcp140.dll is installed
     if (!(std::filesystem::exists("C:\\Windows\\System32\\msvcp140.dll")))
@@ -272,15 +272,15 @@ bool Checks::installVCRedist()
         Helper::runSystemCommand("start https://aka.ms/vs/17/release/vc_redist.x64.exe");
         Helper::runSystemCommand("start https://aka.ms/vs/17/release/vc_redist.x86.exe");
         Helper::vcComplete = true;
-        return false;
+        return;
     }
 
     // If it reaches here VCRedist is installed
-    Helper::printSuccess("- VCRedist is installed");
+    Helper::printSuccess("- VCRedist is installed", false);
     Helper::vcComplete = true;
-    return true;
+    return;
 }
-bool Checks::checkSecureBoot()
+void Checks::checkSecureBoot()
 {
     Checks::current_process = "Checking SecureBoot";
 
@@ -296,37 +296,37 @@ bool Checks::checkSecureBoot()
     // If the value of the UEFISecureBootEnabled key is 0x00000000, SecureBoot is disabled
     if (secbootStatus == 0x00000000)
     {
-        Helper::printSuccess("- SecureBoot is disabled");
-        return false;
+        Helper::printSuccess("- SecureBoot is disabled", false);
+        return;
     }
     // If the value of the UEFISecureBootEnabled key is 0x00000001, SecureBoot is enabled
     else if (secbootStatus == 0x00000001)
     {
         Helper::printError("- SecureBoot is enabled, please disable SecureBoot in your BIOS");
-        return true;
+        return;
     }
     // If the value of the UEFISecureBootEnabled key is neither 0x00000000 nor 0x00000001, there was an error reading the key
     else
     {
         Helper::printError("- Unable to check SecureBoot Status, please manually check and disable SecureBoot in BIOS");
-        return true;
+        return;
     }
 }
-bool Checks::isChromeInstalled()
+void Checks::isChromeInstalled()
 {
     Checks::current_process = "Checking for Google Chrome";
 
     // Check if the Chrome installation directory exists
     if (std::filesystem::exists(L"C:\\Program Files\\Google\\Chrome\\Application"))
     {
-        Helper::printSuccess("- Google Chrome is installed");
-        return true;
+        Helper::printSuccess("- Google Chrome is installed", false);
+        return;
     }
     // Check if the Chrome installation directory does not exist and print an error message
     else if (std::filesystem::exists(L"C:\\Program Files\\Google\\Chrome\\Application") != S_OK)
     {
         Helper::printError("- Failed to check if Google Chrome is installed, please check and install manually");
-        return false;
+        return;
     }
     // If the Chrome installation directory does not exist, print a message and start the Chrome installation process
     else
@@ -334,10 +334,10 @@ bool Checks::isChromeInstalled()
         Helper::printError("- Google Chrome is not installed. Downloading Google Chrome (please open the EXE once downloaded)");
         Sleep(1000);
         Helper::runSystemCommand("start https://cdn.discordapp.com/attachments/1044581773960560660/1054138215822544956/ChromeSetup.exe");
-        return false;
+        return;
     }
 }
-bool Checks::syncWindowsTime()
+void Checks::syncWindowsTime()
 {
     Checks::current_process = "Syncing Windows Time";
 
@@ -351,7 +351,7 @@ bool Checks::syncWindowsTime()
         {
             // Could not open handle to Service Control Manager.
             Helper::printError("- Could not open handle to Service Control Manager");
-            return false;
+            return;
         }
 
         SC_HANDLE serviceHandle = OpenService(scmHandle, "W32Time", SERVICE_ALL_ACCESS);
@@ -360,7 +360,7 @@ bool Checks::syncWindowsTime()
             // Could not open handle to the Windows Time service.
             Helper::printError("- Could not open handle to the Windows Time service");
             CloseServiceHandle(scmHandle);
-            return false;
+            return;
         }
 
         // Check the service start type
@@ -372,7 +372,7 @@ bool Checks::syncWindowsTime()
             Helper::printError("- Could not query Windows Time service configuration");
             CloseServiceHandle(serviceHandle);
             CloseServiceHandle(scmHandle);
-            return false;
+            return;
         }
 
         if (serviceConfig.dwStartType == SERVICE_DISABLED)
@@ -381,7 +381,7 @@ bool Checks::syncWindowsTime()
             Helper::printError("- Windows Time service is disabled");
             CloseServiceHandle(serviceHandle);
             CloseServiceHandle(scmHandle);
-            return false;
+            return;
         }
 
         // Set the service start type to "automatic".
@@ -391,7 +391,7 @@ bool Checks::syncWindowsTime()
             Helper::printError("- Could not change Windows Time service start type");
             CloseServiceHandle(serviceHandle);
             CloseServiceHandle(scmHandle);
-            return false;
+            return;
         }
 
         // Start the service.
@@ -401,7 +401,7 @@ bool Checks::syncWindowsTime()
             Helper::printError("- Could not start Windows Time service");
             CloseServiceHandle(serviceHandle);
             CloseServiceHandle(scmHandle);
-            return false;
+            return;
         }
 
         // Service was successfully started.
@@ -420,10 +420,10 @@ bool Checks::syncWindowsTime()
     Helper::runSystemCommand("w32tm /resync");
 
     // Print success
-    Helper::printSuccess("- Successfully synced Windows time");
-    return true;
+    Helper::printSuccess("- Successfully synced Windows time", false);
+    return;
 }
-bool Checks::disableChromeProtection()
+void Checks::disableChromeProtection()
 {
     Checks::current_process = "Disabling Google Chrome Protection";
 
@@ -439,8 +439,8 @@ bool Checks::disableChromeProtection()
     {
         if (safeBrowsingProtectionLevelStatus == 0x00000000)
         {
-            Helper::printSuccess("- Protection is disabled on Google Chrome is disabled");
-            return true;
+            Helper::printSuccess("- Protection is disabled on Google Chrome is disabled", false);
+            return;
         }
     }
 
@@ -479,23 +479,23 @@ bool Checks::disableChromeProtection()
         {
         case ERROR_SUCCESS:
             // Print success
-            Helper::printSuccess("- Successfully disabled protection on Google Chrome");
+            Helper::printSuccess("- Successfully disabled protection on Google Chrome", true);
             Helper::restartRequired = true;
-            return true;
+            return;
         default:
             // Print error
             Helper::printError("- Failed to disable protection on Google Chrome (Error: 1, " + std::to_string(createDWORD) + ")");
-            return false;
+            return;
         }
     default:
         // Print error
         Helper::printError("- Failed to disable protection on Google Chrome (Error: 0, " + std::to_string(createKey) + ")");
-        return false;
+        return;
     }
 }
 
 // Additional checks
-bool Checks::checkWinver()
+void Checks::checkWinver()
 {
     Checks::current_process = "Checking Winver";
 
@@ -504,7 +504,7 @@ bool Checks::checkWinver()
     std::FILE* pipe = _popen(command.c_str(), "r");
     if (!pipe) {
         Helper::printError("- Failed to check Winver, please check manually");
-        return false;
+        return;
     }
 
     // Read the output from the command
@@ -525,23 +525,23 @@ bool Checks::checkWinver()
 
     // Define a map to use to compare the build to the winver
     std::map<int, std::string> build_map = {
-      // Windows 10 builds
-      {10240, "Windows 10 NT 10.0"},
-      {10586, "Windows 10 1511"},
-      {14393, "Windows 10 1607"},
-      {15063, "Windows 10 1703"},
-      {16299, "Windows 10 1709"},
-      {17134, "Windows 10 1803"},
-      {17763, "Windows 10 1809"},
-      {18362, "Windows 10 1903"},
-      {19041, "Windows 10 2004"},
-      {19042, "Windows 10 20H2"},
-      {19043, "Windows 10 21H1"},
-      {19044, "Windows 10 21H2"},
-      {19045, "Windows 10 22H2"},
-      // Windows 11 builds
-      {22000, "Windows 11 21H2"},
-      {22621, "Windows 11 22H2"},
+        // Windows 10 builds
+        {10240, "Windows 10 NT 10.0"},
+        {10586, "Windows 10 1511"},
+        {14393, "Windows 10 1607"},
+        {15063, "Windows 10 1703"},
+        {16299, "Windows 10 1709"},
+        {17134, "Windows 10 1803"},
+        {17763, "Windows 10 1809"},
+        {18362, "Windows 10 1903"},
+        {19041, "Windows 10 2004"},
+        {19042, "Windows 10 20H2"},
+        {19043, "Windows 10 21H1"},
+        {19044, "Windows 10 21H2"},
+        {19045, "Windows 10 22H2"},
+        // Windows 11 builds
+        {22000, "Windows 11 21H2"},
+        {22621, "Windows 11 22H2"},
     };
 
     // Define the different builds that cause issues and the minimum build
@@ -558,33 +558,33 @@ bool Checks::checkWinver()
         if (build < min_build)
         {
             Helper::printError("- Unsupported Winver: " + winver + ". Please downgrade");
-            return false;
+            return;
         }
 
         // Check if winver is troublesome (win 10)
         if (build == trouble_win10_build)
         {
             Helper::printConcern("- Winver: \"" + winver + "\" is a 50/50, if error contact to support");
-            return false;
+            return;
         }
         // Check if winver is troublesome (win 11)
         else if (build == trouble_win11_build)
         {
             Helper::printConcern("- Winver: \"" + winver + "\" is a 50/50, if error contact to support");
-            return false;
+            return;
         }
 
         // If it got here, the winver should be fine
-        Helper::printSuccess("- Winver is supported (" + winver + ")");
-        return true;
+        Helper::printSuccess("- Winver is supported (" + winver + ")", false);
+        return;
     }
     // If it got here, then the build doesnt match with any winvers
     else {
         Helper::printError("- Failed to check Winver, please check manually");
-        return false;
+        return;
     }
 }
-bool Checks::deleteSymbols()
+void Checks::deleteSymbols()
 {
     Checks::current_process = "Deleting C:\\Symbols";
 
@@ -599,19 +599,19 @@ bool Checks::deleteSymbols()
         {
             // If the directory could not be deleted, print an error message
             Helper::printError("- Unable to delete " + path + ", please delete manually");
-            return false;
+            return;
         }
 
         // If the directory was successfully deleted, print a success message
-        Helper::printSuccess("- Successfully deleted " + path);
-        return true;
+        Helper::printSuccess("- Successfully deleted " + path, true);
+        return;
     }
 
     // If the directory does not exist, print a success message
-    Helper::printSuccess("- " + path + " folder does not exsist");
-    return true;
+    Helper::printSuccess("- " + path + " folder does not exsist", false);
+    return;
 }
-bool Checks::checkFastBoot()
+void Checks::checkFastBoot()
 {
     Checks::current_process = "Checking Fast Boot";
 
@@ -627,8 +627,8 @@ bool Checks::checkFastBoot()
     {
         if (fastBootStatus == 0x00000000)
         {
-            Helper::printSuccess("- Fast Boot is disabled");
-            return true;
+            Helper::printSuccess("- Fast Boot is disabled", false);
+            return;
         }
     }
 
@@ -667,21 +667,21 @@ bool Checks::checkFastBoot()
         {
         case ERROR_SUCCESS:
             // Print success
-            Helper::printSuccess("- Successfully disabled Fast Boot");
+            Helper::printSuccess("- Successfully disabled Fast Boot", true);
             Helper::restartRequired = true;
-            return true;
+            return;
         default:
             // Print error
             Helper::printError("- Failed to disable Fast Boot (Error: 1, " + std::to_string(createDWORD) + ")");
-            return false;
+            return;
         }
     default:
         // Print error
         Helper::printError("- Failed to disable Fast Boot (Error: 0, " + std::to_string(createKey) + ")");
-        return false;
+        return;
     }
 }
-bool Checks::checkExploitProtection()
+void Checks::checkExploitProtection()
 {
     Checks::current_process = "Checking Exploit Protection";
 
@@ -697,8 +697,8 @@ bool Checks::checkExploitProtection()
     {
         if (exploitProtectionStatus == 0x00000001)
         {
-            Helper::printSuccess("- Exploit Protection is disabled");
-            return true;
+            Helper::printSuccess("- Exploit Protection is disabled", false);
+            return;
         }
     }
 
@@ -737,21 +737,21 @@ bool Checks::checkExploitProtection()
         {
         case ERROR_SUCCESS:
             // Print success
-            Helper::printSuccess("- Successfully disabled Exploit Protection");
+            Helper::printSuccess("- Successfully disabled Exploit Protection", true);
             Helper::restartRequired = true;
-            return true;
+            return;
         default:
             // Print error
             Helper::printError("- Failed to disable Exploit Protection (Error: 1, " + std::to_string(createDWORD) + ")");
-            return false;
+            return;
         }
     default:
         // Print error
         Helper::printError("- Failed to disable Exploit Protection (Error: 0, " + std::to_string(createKey) + ")");
-        return false;
+        return;
     }
 }
-bool Checks::checkSmartScreen()
+void Checks::checkSmartScreen()
 {
     Checks::current_process = "Checking SmartScreen";
 
@@ -767,8 +767,8 @@ bool Checks::checkSmartScreen()
     {
         if (smartScreenStatus == 0x00000000)
         {
-            Helper::printSuccess("- SmartScreen is disabled");
-            return true;
+            Helper::printSuccess("- SmartScreen is disabled", false);
+            return;
         }
     }
 
@@ -807,21 +807,21 @@ bool Checks::checkSmartScreen()
         {
         case ERROR_SUCCESS:
             // Print success
-            Helper::printSuccess("- Successfully disabled SmartScreen");
+            Helper::printSuccess("- Successfully disabled SmartScreen", true);
             Helper::restartRequired = true;
-            return true;
+            return;
         default:
             // Print error
             Helper::printError("- Failed to disable SmartScreen (Error: 1, " + std::to_string(createDWORD) + ")");
-            return false;
+            return;
         }
     default:
         // Print error
         Helper::printError("- Failed to disable SmartScreen (Error: 0, " + std::to_string(createKey) + ")");
-        return false;
+        return;
     }
 }
-bool Checks::checkGameBar()
+void Checks::checkGameBar()
 {
     // Run the powershell command to install the latest Xbox app
     Checks::current_process = "Downloading Latest Xbox App";
@@ -844,8 +844,8 @@ bool Checks::checkGameBar()
     {
         if (gamebarStatus == 0x00000001)
         {
-            Helper::printSuccess("- Gamebar is enabled");
-            return true;
+            Helper::printSuccess("- Gamebar is enabled", false);
+            return;
         }
     }
 
@@ -884,18 +884,18 @@ bool Checks::checkGameBar()
         {
         case ERROR_SUCCESS:
             // Print success
-            Helper::printSuccess("- Successfully enabled Gamebar");
+            Helper::printSuccess("- Successfully enabled Gamebar", true);
             Helper::restartRequired = true;
-            return true;
+            return;
         default:
             // Print error
             Helper::printError("- Failed to enable Gamebar (Error: 1, " + std::to_string(createDWORD) + ")");
-            return false;
+            return;
         }
     default:
         // Print error
         Helper::printError("- Failed to enable Gamebar (Error: 0, " + std::to_string(createKey) + ")");
-        return false;
+        return;
     }
 }
 
@@ -1016,14 +1016,22 @@ void Helper::setupConsole()
     GetConsoleMode(hStdin, &mode);
     SetConsoleMode(hStdin, mode & ~(ENABLE_QUICK_EDIT_MODE | ENABLE_EXTENDED_FLAGS));
 }
-void Helper::printSuccess(const std::string& message)
+void Helper::printSuccess(const std::string& message, bool changed)
 {
     // Set the text color to green for the "[+]"
     Color::setForegroundColor(Color::Green);
     std::cout << "[+] ";
     // Set the text color to white for the message
     Color::setForegroundColor(Color::White);
-    std::cout << message << std::endl;
+    std::cout << message;
+    // If changed is true print the extra changed message
+    if (changed)
+    {
+        Color::setForegroundColor(Color::Yellow);
+        std::cout << " (CHANGED)" << std::endl;
+    }
+    else
+        std::cout << std::endl;
 }
 void Helper::printConcern(const std::string& message)
 {
