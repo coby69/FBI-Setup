@@ -53,7 +53,7 @@ void Checks::check3rdPartyAntiVirus()
     Checks::current_process = "Checking for 3rd Party AV's";
 
     // Open a pipe to the WMIC command
-    std::string_view command = "WMIC /Node:localhost /Namespace:\\\\root\\SecurityCenter2 Path AntiVirusProduct Get displayName /Format:List";
+    std::string command = "WMIC /Node:localhost /Namespace:\\\\root\\SecurityCenter2 Path AntiVirusProduct Get displayName /Format:List";
     std::string antivirusList;
     std::FILE* pipe = _popen(command.c_str(), "r");
     if (!pipe) {
@@ -110,7 +110,7 @@ void Checks::checkCPUV()
     Checks::current_process = "Checking CPU-V";
 
     // Open a pipe to the WMIC command
-    std::string_view command = "WMIC CPU Get VirtualizationFirmwareEnabled";
+    std::string command = "WMIC CPU Get VirtualizationFirmwareEnabled";
     std::FILE* pipe = _popen(command.c_str(), "r");
     if (!pipe) {
         Helper::printError("- Failed to check if CPUV is enabled, please manually check and disable in BIOS");
