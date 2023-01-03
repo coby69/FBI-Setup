@@ -14,13 +14,11 @@ int main()
     // Run the console settings setup
     Helper::setupConsole();
 
-    // Begin the console title loop
-    std::thread titleLoopT(Helper::titleLoop);
-    Helper::titleLoopBool = true;
-
     // Add a message informing the user of how long it will take
     Color::setForegroundColor(Color::Cyan);
     std::cout << "Please wait 1-2 minutes while we run through and check everything\n";
+    Color::setForegroundColor(Color::Green);
+    std::cout << "Wait till the program says to take a screenshot to send one\n";
     Color::setForegroundColor(Color::LightGray);
     std::cout << "-----------------------------------------------------------------\n";
 
@@ -94,15 +92,13 @@ int main()
     }
 
     std::cout << "\n";
+    SetConsoleTitleA("Checking completed!");
 
-    Helper::titleLoopBool = false;
-    Sleep(300);
-    titleLoopT.join();
+    Sleep(100);
     vcThread.join();
 
     while (true)
     {
         // Hang the application
-        SetConsoleTitleA("Checking completed!");
     }
 }

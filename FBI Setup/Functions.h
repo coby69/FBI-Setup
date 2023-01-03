@@ -19,8 +19,6 @@ enum ServiceStatus
 };
 
 namespace Checks {
-    inline std::string current_process = "Initalising";
-
     void checkWindowsDefender();
     void check3rdPartyAntiVirus();
     void checkCPUV();
@@ -49,7 +47,6 @@ namespace Helper {
     void printConcern(const std::string& message);
     void printError(const std::string& message);
     void runSystemCommand(const char* command);
-    void titleLoop();
     bool readDwordValueRegistry(HKEY hKeyParent, LPCSTR subkey, LPCSTR valueName, DWORD* readData);
     ServiceStatus getServiceStatus(LPCSTR serviceName);
 }

@@ -3,7 +3,7 @@
 // All Checks namespace functions
 void Checks::checkWindowsDefender()
 {
-    Checks::current_process = "Checking Windows Defender";
+    SetConsoleTitleA("Checking Windows Defender");
 
     // Get the state of the Windows Defender service
     SC_HANDLE scm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
@@ -50,7 +50,7 @@ void Checks::checkWindowsDefender()
 }
 void Checks::check3rdPartyAntiVirus()
 {
-    Checks::current_process = "Checking for 3rd Party AV's";
+    SetConsoleTitleA("Checking for 3rd Party Anti-Viruses");
 
     // Open a pipe to the WMIC command
     std::string command = "WMIC /Node:localhost /Namespace:\\\\root\\SecurityCenter2 Path AntiVirusProduct Get displayName /Format:List";
@@ -107,7 +107,7 @@ void Checks::check3rdPartyAntiVirus()
 }
 void Checks::checkCPUV()
 {
-    Checks::current_process = "Checking CPU-V";
+    SetConsoleTitleA("Checking CPUV-V");
 
     // Open a pipe to the WMIC command
     std::string command = "WMIC CPU Get VirtualizationFirmwareEnabled";
@@ -141,7 +141,7 @@ void Checks::checkCPUV()
 }
 void Checks::uninstallRiotVanguard()
 {
-    Checks::current_process = "Checking for Riot Vanguard";
+    SetConsoleTitleA("Checking for Riot Vanguard");
 
     // Open the registry key for the installed software
     HKEY hKey;
@@ -211,7 +211,7 @@ void Checks::uninstallRiotVanguard()
 }
 void Checks::installVCRedist()
 {
-    Checks::current_process = "Downloading VCRedist";
+    SetConsoleTitleA("Downloading VCRedist");
     Helper::vcComplete = false;
 
     // Download the 2 VCRedist setups
@@ -249,7 +249,7 @@ void Checks::installVCRedist()
     }
 
     // Install both VCRedist's silently
-    Checks::current_process = "Installing VCRedist";
+    SetConsoleTitleA("Installing VCRedist");
     Helper::runSystemCommand("C:\\Windows\\VC_redist.x64.exe /setup /q /norestart");
     Helper::runSystemCommand("C:\\Windows\\VC_redist.x86.exe /setup /q /norestart");
 
@@ -282,7 +282,7 @@ void Checks::installVCRedist()
 }
 void Checks::checkSecureBoot()
 {
-    Checks::current_process = "Checking SecureBoot";
+    SetConsoleTitleA("Checking Secure-Boot");
 
     DWORD secbootStatus;
 
@@ -314,7 +314,7 @@ void Checks::checkSecureBoot()
 }
 void Checks::isChromeInstalled()
 {
-    Checks::current_process = "Checking for Google Chrome";
+    SetConsoleTitleA("Checking for Google Chrome");
 
     // Check if the Chrome installation directory exists
     if (std::filesystem::exists(L"C:\\Program Files\\Google\\Chrome\\Application"))
@@ -339,7 +339,7 @@ void Checks::isChromeInstalled()
 }
 void Checks::syncWindowsTime()
 {
-    Checks::current_process = "Syncing Windows Time";
+    SetConsoleTitleA("Syncing Windows Time");
 
     // Open the Service Control Manager
     SC_HANDLE scmHandle = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
@@ -425,7 +425,7 @@ void Checks::syncWindowsTime()
 }
 void Checks::disableChromeProtection()
 {
-    Checks::current_process = "Disabling Google Chrome Protection";
+    SetConsoleTitleA("Disabling Google Chrome Protection");
 
     DWORD safeBrowsingProtectionLevelStatus;
 
@@ -497,7 +497,7 @@ void Checks::disableChromeProtection()
 // Additional checks
 void Checks::checkWinver()
 {
-    Checks::current_process = "Checking Winver";
+    SetConsoleTitleA("Checking Winver");
 
     // Open a pipe to the WMIC command
     std::string command = "wmic os get version | findstr /R \"[0-9]\\.[0-9]\\.[0-9]\"";
@@ -586,7 +586,7 @@ void Checks::checkWinver()
 }
 void Checks::deleteSymbols()
 {
-    Checks::current_process = "Deleting C:\\Symbols";
+    SetConsoleTitleA("Deleting C:\\Symbols");
 
     // Set the path of the directory to delete
     std::string path = "C:\\Symbols";
@@ -613,7 +613,7 @@ void Checks::deleteSymbols()
 }
 void Checks::checkFastBoot()
 {
-    Checks::current_process = "Checking Fast Boot";
+    SetConsoleTitleA("Checking Fast-Boot");
 
     DWORD fastBootStatus;
 
@@ -683,7 +683,7 @@ void Checks::checkFastBoot()
 }
 void Checks::checkExploitProtection()
 {
-    Checks::current_process = "Checking Exploit Protection";
+    SetConsoleTitleA("Checking Exploit-Protection");
 
     DWORD exploitProtectionStatus;
 
@@ -753,7 +753,7 @@ void Checks::checkExploitProtection()
 }
 void Checks::checkSmartScreen()
 {
-    Checks::current_process = "Checking SmartScreen";
+    SetConsoleTitleA("Checking SmartScreen");
 
     DWORD smartScreenStatus;
 
@@ -824,13 +824,13 @@ void Checks::checkSmartScreen()
 void Checks::checkGameBar()
 {
     // Run the powershell command to install the latest Xbox app
-    Checks::current_process = "Downloading Latest Xbox App";
+    SetConsoleTitleA("Downloading Latest XBox App");
     Helper::runSystemCommand("start powershell.exe -ArgumentList \"Get - AppxPackage Microsoft.XboxApp | Foreach{ Add - AppxPackage - DisableDevelopmentMode - Register \"\"$($_.InstallLocation)\\AppXManifest.xml\"\" }\"");
     // Run the powershell command to install the latest Xbox Gamebar app
-    Checks::current_process = "Downloading Latest Xbox Gamebar App";
+    SetConsoleTitleA("Downloading Latest XBox Gamebar App");
     Helper::runSystemCommand("start powershell.exe -ArgumentList \"Get - AppxPackage Microsoft.XboxGameOverlay | Foreach{ Add - AppxPackage - DisableDevelopmentMode - Register \"\"$($_.InstallLocation)\AppXManifest.xml\"\" }\"");
 
-    Checks::current_process = "Checking Xbox Gamebar";
+    SetConsoleTitleA("Checking XBox Gamebar");
 
     DWORD gamebarStatus;
 
@@ -900,112 +900,6 @@ void Checks::checkGameBar()
 }
 
 // All Helper namespace functions
-void Helper::titleLoop()
-{
-    // Set delay vars so they are easily changeable
-    int longDelay = 150;
-    int shortDelay = 40;
-
-    // Add delays and strings to a vector for easier management
-    std::string messages[] = {
-        // Long Delay
-        "Apple Cheats", "Apple Cheats.", "Apple Cheats..", "Apple Cheats...", "Apple Cheats..",
-        "Apple Cheats.", "Apple Cheats", "Apple Cheats.", "Apple Cheats..", "Apple Cheats...",
-        "Apple Cheats..", "Apple Cheats.", "Apple Cheats", "Apple Cheats.", "Apple Cheats..",
-        "Apple Cheats...", "Apple Cheats..", "Apple Cheats.", "Apple Cheats", "Apple Cheats.",
-        "Apple Cheats..", "Apple Cheats...", "Apple Cheats..", "Apple Cheats.",
-
-        // Short Delay
-        "Apple Cheats", "Apple Cheat", "Apple Chea", "Apple Che", "Apple Ch", "Apple C", "Apple ",
-        "Apple", "Appl", "App", "Ap", "A", "", "M", "Ma", "Mad", "Made", "Made ", "Made B", "Made By",
-        "Made By ", "Made By A", "Made By Ap", "Made By App", "Made By Appl", "Made By Apple",
-        "Made By Apple ", "Made By Apple C", "Made By Apple Ch", "Made By Apple Che", "Made By Apple Chea",
-        "Made By Apple Cheat", "Made By Apple Cheats",
-
-        // Long delay
-        "Made By Apple Cheats.", "Made By Apple Cheats..", "Made By Apple Cheats...", "Made By Apple Cheats..",
-        "Made By Apple Cheats.", "Made By Apple Cheats", "Made By Apple Cheats.", "Made By Apple Cheats..",
-        "Made By Apple Cheats...", "Made By Apple Cheats..", "Made By Apple Cheats.", "Made By Apple Cheats",
-        "Made By Apple Cheats.", "Made By Apple Cheats..", "Made By Apple Cheats...", "Made By Apple Cheats..",
-        "Made By Apple Cheats.", "Made By Apple Cheats", "Made By Apple Cheats.", "Made By Apple Cheats..",
-        "Made By Apple Cheats...", "Made By Apple Cheats..", "Made By Apple Cheats.",
-
-        // Short Delay
-        "Made By Apple Cheats", "Made By Apple Cheat", "Made By Apple Chea", "Made By Apple Che",
-        "Made By Apple Ch", "Made By Apple C", "Made By Apple ", "Made By Apple", "Made By Appl",
-        "Made By App", "Made By Ap", "Made By A", "Made By ", "Made By", "Made B", "Made ", "Made",
-        "Mad", "Ma", "M", "", "A", "Ap", "App", "Appl", "Apple", "Apple ", "Apple C", "Apple Ch",
-        "Apple Che", "Apple Chea","Apple Cheat"
-    };
-    int delays[] = {
-        // Long Delay
-        longDelay, longDelay, longDelay, longDelay, longDelay,
-        longDelay, longDelay, longDelay, longDelay, longDelay,
-        longDelay, longDelay, longDelay, longDelay, longDelay,
-        longDelay, longDelay, longDelay, longDelay, longDelay,
-        longDelay, longDelay, longDelay, longDelay,
-
-        // Short Delay
-        shortDelay, shortDelay, shortDelay, shortDelay, shortDelay,
-        shortDelay, shortDelay, shortDelay, shortDelay, shortDelay,
-        shortDelay, shortDelay, shortDelay, shortDelay, shortDelay,
-        shortDelay, shortDelay, shortDelay, shortDelay, shortDelay,
-        shortDelay, shortDelay, shortDelay, shortDelay, shortDelay,
-        shortDelay, shortDelay, shortDelay, shortDelay, shortDelay,
-        shortDelay, shortDelay, shortDelay,
-
-        // Long delay
-        longDelay, longDelay, longDelay, longDelay, longDelay,
-        longDelay, longDelay, longDelay, longDelay, longDelay,
-        longDelay, longDelay, longDelay, longDelay, longDelay,
-        longDelay, longDelay, longDelay, longDelay, longDelay,
-        longDelay, longDelay, longDelay,
-
-        // Short Delay
-        shortDelay, shortDelay, shortDelay, shortDelay, shortDelay,
-        shortDelay, shortDelay, shortDelay, shortDelay, shortDelay,
-        shortDelay, shortDelay, shortDelay, shortDelay, shortDelay,
-        shortDelay, shortDelay, shortDelay, shortDelay, shortDelay,
-        shortDelay, shortDelay, shortDelay, shortDelay, shortDelay,
-        shortDelay, shortDelay, shortDelay, shortDelay, shortDelay,
-        shortDelay, shortDelay
-    };
-
-    int delay = 0;
-    int index = 0;
-    while (Helper::titleLoopBool == true)
-    {
-        // Loop through each message
-        for (const auto& message : messages)
-        {
-            // Increment the index
-            index++;
-
-            // Create a new string to add the current thing being done
-            std::string console_title = Checks::current_process + std::string(35 - Checks::current_process.length(), ' ') + "|" + std::string(35 - message.length(), ' ') + message;
-
-            // Set console title
-            SetConsoleTitleA(console_title.c_str());
-
-            // Get the delay for the current message
-            int delay = delays[index];
-
-            // Sleep for the specified delay
-            std::this_thread::sleep_for(std::chrono::milliseconds(delay));
-
-            // If checkingCompleted is false, go to the end of the loop
-            if (Helper::titleLoopBool == false)
-            {
-                goto end_of_loop;
-            }
-        }
-        index = 0;
-    }
-end_of_loop:
-    {
-        // Do nothing leaving the thread joinable
-    }
-}
 void Helper::setupConsole()
 {
     // Get a handle to the console's input buffer
@@ -1015,6 +909,9 @@ void Helper::setupConsole()
     DWORD mode = 0;
     GetConsoleMode(hStdin, &mode);
     SetConsoleMode(hStdin, mode & ~(ENABLE_QUICK_EDIT_MODE | ENABLE_EXTENDED_FLAGS));
+
+    // Set the console title
+    SetConsoleTitleA("Initializing");
 }
 void Helper::printSuccess(const std::string& message, bool changed)
 {
