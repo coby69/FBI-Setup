@@ -480,7 +480,6 @@ void Checks::disableChromeProtection()
         case ERROR_SUCCESS:
             // Print success
             Helper::printSuccess("- Successfully disabled protection on Google Chrome", true);
-            Helper::restartRequired = true;
             return;
         default:
             // Print error
