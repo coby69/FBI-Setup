@@ -437,7 +437,7 @@ void Checks::disableChromeProtection()
         "SafeBrowsingProtectionLevel", // DWORD name
         &safeBrowsingProtectionLevelStatus) == true)
     {
-        if (safeBrowsingProtectionLevelStatus == 0x00000000)
+        if (safeBrowsingProtectionLevelStatus == 0x00000001)
         {
             Helper::printSuccess("- Protection is disabled on Google Chrome is disabled", false);
             return;
