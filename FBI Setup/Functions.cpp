@@ -633,7 +633,7 @@ void Checks::checkFastBoot()
 
     HKEY hKey;
     DWORD disp;
-    DWORD value = 0x00000001; // Value that will be set for the HiberbootEnabled registry key
+    DWORD value = 0x00000000; // Value that will be set for the HiberbootEnabled registry key
 
     // Create the registry key needed for editing Power Settings settings with registry
     LONG createKey = RegCreateKeyEx(
