@@ -12,7 +12,7 @@
 int main()
 {
     // Run the console settings setup
-    Helper::setupConsole();
+    //Helper::setupConsole();
 
     // Add a message informing the user of how long it will take
     Color::setForegroundColor(Color::Cyan);

@@ -343,17 +343,18 @@ void Checks::syncWindowsTime()
 
     // Open the Service Control Manager
     SC_HANDLE scmHandle = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+    if (scmHandle == NULL)
+    {
+        // Could not open handle to Service Control Manager.
+        Helper::printError("- Could not open handle to Service Control Manager");
+        return;
+    }
+
     // Register the w32tm service to fix some errors with the w32tm service
     Helper::runSystemCommand("w32tm /register");
+
     if (Helper::getServiceStatus("W32Time") == STATUS_SERVICE_STOPPED)
     {
-        if (scmHandle == NULL)
-        {
-            // Could not open handle to Service Control Manager.
-            Helper::printError("- Could not open handle to Service Control Manager");
-            return;
-        }
-
         SC_HANDLE serviceHandle = OpenService(scmHandle, "W32Time", SERVICE_ALL_ACCESS);
         if (serviceHandle == NULL)
         {
@@ -823,11 +824,11 @@ void Checks::checkSmartScreen()
 void Checks::checkGameBar()
 {
     // Run the powershell command to install the latest Xbox app
-    SetConsoleTitleA("Downloading Latest XBox App");
-    Helper::runSystemCommand("start powershell.exe -ArgumentList \"Get - AppxPackage Microsoft.XboxApp | Foreach{ Add - AppxPackage - DisableDevelopmentMode - Register \"\"$($_.InstallLocation)\\AppXManifest.xml\"\" }\"");
+    SetConsoleTitleA("Downloading Latest Xbox App");
+    system("powershell.exe -Command \"Get-AppxPackage -Name Microsoft.XboxApp | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register 'C:\\Windows\\System32\\Microsoft.XboxApp\\AppXManifest.xml'}\"");
     // Run the powershell command to install the latest Xbox Gamebar app
-    SetConsoleTitleA("Downloading Latest XBox Gamebar App");
-    Helper::runSystemCommand("start powershell.exe -ArgumentList \"Get - AppxPackage Microsoft.XboxGameOverlay | Foreach{ Add - AppxPackage - DisableDevelopmentMode - Register \"\"$($_.InstallLocation)\AppXManifest.xml\"\" }\"");
+    SetConsoleTitleA("Downloading Latest Xbox Gamebar App");
+    system("powershell.exe -Command \"Get-AppxPackage -Name Microsoft.XboxGameOverlay | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register 'C:\\Windows\\System32\\Microsoft.XboxGameOverlay\\AppXManifest.xml'}\"");
 
     SetConsoleTitleA("Checking XBox Gamebar");
 
