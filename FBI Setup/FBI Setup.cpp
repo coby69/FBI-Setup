@@ -100,5 +100,6 @@ int main()
     while (true)
     {
         // Hang the application
+        Sleep(1);
     }
 }
