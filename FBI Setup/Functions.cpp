@@ -823,12 +823,14 @@ void Checks::checkSmartScreen()
 }
 void Checks::checkGameBar()
 {
+    // NEEDS UPDATING:
+    // 
     // Run the powershell command to install the latest Xbox app
-    SetConsoleTitleA("Downloading Latest Xbox App");
-    system("powershell.exe -Command \"Get-AppxPackage -Name Microsoft.XboxApp | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register 'C:\\Windows\\System32\\Microsoft.XboxApp\\AppXManifest.xml'}\"");
+    //SetConsoleTitleA("Downloading Latest Xbox App");
+    //system("powershell.exe -Command \"Get-AppxPackage -Name Microsoft.XboxApp | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register 'C:\\Windows\\System32\\Microsoft.XboxApp\\AppXManifest.xml'}\"");
     // Run the powershell command to install the latest Xbox Gamebar app
-    SetConsoleTitleA("Downloading Latest Xbox Gamebar App");
-    system("powershell.exe -Command \"Get-AppxPackage -Name Microsoft.XboxGameOverlay | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register 'C:\\Windows\\System32\\Microsoft.XboxGameOverlay\\AppXManifest.xml'}\"");
+    //SetConsoleTitleA("Downloading Latest Xbox Gamebar App");
+    //system("powershell.exe -Command \"Get-AppxPackage -Name Microsoft.XboxGameOverlay | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register 'C:\\Windows\\System32\\Microsoft.XboxGameOverlay\\AppXManifest.xml'}\"");
 
     SetConsoleTitleA("Checking XBox Gamebar");
 
