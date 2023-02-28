@@ -546,8 +546,8 @@ void Checks::checkWinver()
 
     // Define the different builds that cause issues and the minimum build
     int min_build = 19041; // Minimum build number to support (2004 or 22H2)
-    int trouble_win10_build = 19045; // Build that causes issues on win 10
-    int trouble_win11_build = 22621; // Build that causes issues on win 11
+
+    std::vector<int> trouble_builds = { 19045, 22621 }; // Define the troublesome winvers
 
     // Check the build to the corresponding string with the map
     auto it = build_map.find(build);
@@ -560,24 +560,25 @@ void Checks::checkWinver()
             Helper::printError("- Unsupported Winver: " + winver + ". Please downgrade");
             return;
         }
+        
+        // Loop through all troublesome winvers
+        for (int i = 0; i <= trouble_builds.size();)
+        {
+            // Check if winver is a troublesome winver
+            if (build == trouble_builds[i])
+            {
+                Helper::printConcern("- Winver: \"" + winver + "\" is a 50/50, if error contact to support");
+                return;
+            }
 
-        // Check if winver is troublesome (win 10)
-        if (build == trouble_win10_build)
-        {
-            Helper::printConcern("- Winver: \"" + winver + "\" is a 50/50, if error contact to support");
-            return;
-        }
-        // Check if winver is troublesome (win 11)
-        else if (build == trouble_win11_build)
-        {
-            Helper::printConcern("- Winver: \"" + winver + "\" is a 50/50, if error contact to support");
-            return;
+            i++;
         }
 
         // If it got here, the winver should be fine
         Helper::printSuccess("- Winver is supported (" + winver + ")", false);
         return;
     }
+
     // If it got here, then the build doesnt match with any winvers
     else {
         Helper::printError("- Failed to check Winver, please check manually");
