@@ -6,6 +6,7 @@ void Checks::checkWindowsDefender()
     SetConsoleTitleA("Checking Windows Defender");
 
     // Get the state of the Windows Defender service
+    // Open the Service Control Manager
     SC_HANDLE scm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
     if (scm == NULL) {
         Helper::printError("- Failed to check Windows Defender. Please manually check and disable Windows Defender (PASSWORD: sordum)");
@@ -13,6 +14,8 @@ void Checks::checkWindowsDefender()
         Helper::runSystemCommand("start https://www.sordum.org/files/downloads.php?st-defender-control");
         return;
     }
+
+    // Open the "WinDefend" service
     SC_HANDLE service = OpenService(scm, "WinDefend", SERVICE_QUERY_STATUS);
     if (service == NULL) {
         Helper::printError("- Failed to check Windows Defender. Please manually check and disable Windows Defender (PASSWORD: sordum)");
@@ -21,6 +24,7 @@ void Checks::checkWindowsDefender()
         CloseServiceHandle(scm);
         return;
     }
+
     SERVICE_STATUS_PROCESS status;
     DWORD bytesNeeded;
     if (!QueryServiceStatusEx(service, SC_STATUS_PROCESS_INFO, (LPBYTE)&status, sizeof(status), &bytesNeeded)) {
@@ -97,7 +101,7 @@ void Checks::check3rdPartyAntiVirus()
 
     // Print the list of antivirus products
     if (!antivirusList.empty()) {
-        std::string message = "- A 3rd party Anti-Virus is installed, please uninstall or disable it. (" + antivirusList + ")";
+        std::string message = "- A 3rd party Anti-Virus is installed, please uninstall or disable it (" + antivirusList + ")";
         Helper::printError(message);
         return;
     }
@@ -898,6 +902,32 @@ void Checks::checkGameBar()
     default:
         // Print error
         Helper::printError("- Failed to enable Gamebar (Error: 0, " + std::to_string(createKey) + ")");
+        return;
+    }
+}
+void Checks::checkModifiedOS()
+{
+    SetConsoleTitleA("Checking if OS is modified");
+
+    // The method we are using to check if the Windows install is modified is by checking if the "WinDefend" service exists
+    // Open the Service Control Manager
+    SC_HANDLE scm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
+    if (scm == NULL) {
+        Helper::printError("- Failed to check if the OS is modified");
+        return;
+    }
+
+    // Open the "WinDefend" service
+    SC_HANDLE service = OpenService(scm, "WinDefend", SERVICE_QUERY_STATUS);
+    if (service == NULL) {
+        Helper::printConcern("- The OS is likely modified (the \"WinDefend\" service doesn't exist)");
+        CloseServiceHandle(scm);
+        return;
+    }
+    else {
+        Helper::printSuccess("- The OS is likely unmodified", false);
+        CloseServiceHandle(service);
+        CloseServiceHandle(scm);
         return;
     }
 }

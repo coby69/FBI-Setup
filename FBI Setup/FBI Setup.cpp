@@ -1,8 +1,8 @@
-// Made by Coby (thanks Kali for the read DWORD function)
-// This version was made on 29/12/2022 (DD/MM/YYYY).
-// This is an open-source project and any and all code can be modified and change at any point in time.
+// Made by Coby and only Coby (thanks Kali for the read DWORD function)
+// This version was made on 04/03/2023 (DD/MM/YYYY).
+// This is an open-source project and any and all code can be modified and changed at any point in time.
 
-// Copyright 2022 AppleCheats.cc
+// Copyright 2023 AppleCheats.cc
 //
 // This code is released under the GNU General Public License (GPL).
 // See https://www.gnu.org/licenses/gpl-3.0.txt for more information.
@@ -12,9 +12,9 @@
 int main()
 {
     // Run the console settings setup
-    //Helper::setupConsole();
+    Helper::setupConsole();
 
-    // Add a message informing the user of how long it will take
+    // Send a message informing the user of how long it will take
     Color::setForegroundColor(Color::Cyan);
     std::cout << "Please wait 1-2 minutes while we run through and check everything\n";
     Color::setForegroundColor(Color::Green);
@@ -25,7 +25,7 @@ int main()
     // Small sleep function so the user doesn't feel overwhelmed when first opening the program
     Sleep(1500);
     
-    // Run through all the checks
+    //Run through all the checks
     Checks::checkWindowsDefender();
     Checks::check3rdPartyAntiVirus();
     Checks::checkSecureBoot();
@@ -62,9 +62,11 @@ int main()
     Checks::checkExploitProtection();
     Checks::checkSmartScreen();
     Checks::checkGameBar();
+    Checks::checkModifiedOS();
 
     if (Helper::vcComplete == false)
     {
+        SetConsoleTitleA("Still waiting for VCRedist");
         while (Helper::vcComplete == false)
         {
             Sleep(10);
