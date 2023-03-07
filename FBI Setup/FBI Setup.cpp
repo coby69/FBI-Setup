@@ -1,6 +1,6 @@
 // Made by Coby and only Coby (thanks Kali for the read DWORD function)
-// This version was made on 04/03/2023 (DD/MM/YYYY).
-// This is an open-source project and any and all code can be modified and changed at any point in time.
+// This version was made on 07/03/2023 (DD/MM/YYYY).
+// This is an open-source project and any and all code can be modified at any point in time.
 
 // Copyright 2023 AppleCheats.cc
 //
@@ -102,6 +102,6 @@ int main()
     while (true)
     {
         // Hang the application
-        Sleep(1);
+        Sleep(100);
     }
 }
