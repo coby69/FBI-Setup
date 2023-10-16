@@ -188,8 +188,15 @@ void Checks::uninstallRiotVanguard()
 
                 if (std::filesystem::exists("C:\\Program Files\\Riot Vanguard\\installer.exe"))
                 {
+                    auto stop = std::chrono::high_resolution_clock::now() + std::chrono::seconds(10);
+
+                    while (std::chrono::high_resolution_clock::now() < stop) {
+                        MessageBoxA(NULL, "When prompted to uninstall Vanguard, press YES", "Uninstall Vanguard", MB_ICONINFORMATION);
+                        Sleep(100);
+                    }
+
                     _spawnl(_P_WAIT, "C:\\Program Files\\Riot Vanguard\\installer.exe", "installer.exe", NULL);
-                    Helper::printSuccess("- Successfully prompted the user to uninstall Riot Vanguard (press Yes to uninstall)", true);
+                    Helper::printError("- Successfully prompted the user to uninstall Riot Vanguard (press Yes to uninstall)");
                     return;
                 }
 

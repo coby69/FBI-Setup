@@ -1,5 +1,5 @@
-// Made by Coby and only Coby (thanks Kali for the read DWORD function)
-// This version was made on 07/03/2023 (DD/MM/YYYY).
+// Made by AppleCheats and only AppleCheats
+// This version was made on 16/10/2023 (DD/MM/YYYY).
 // This is an open-source project and any and all code can be modified at any point in time.
 
 // Copyright 2023 AppleCheats.cc
@@ -99,9 +99,6 @@ int main()
     Sleep(100);
     vcThread.join();
 
-    while (true)
-    {
-        // Hang the application
-        Sleep(100);
-    }
+    // Hang the application
+    Sleep(-1);
 }
