@@ -100,5 +100,6 @@ int main()
     vcThread.join();
 
     // Hang the application
+    SetConsoleTitleA("Checking completed!");
     Sleep(-1);
 }
